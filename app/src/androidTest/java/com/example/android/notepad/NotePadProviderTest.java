@@ -119,15 +119,20 @@ public class NotePadProviderTest extends ProviderTestCase2<NotePadProvider> {
          * a database object from the helper.
          */
         mDb = getProvider().getOpenHelperForTest().getWritableDatabase();
+        // Newer SQLiteOpenHelper implementations can reuse the isolated test database.
+        mDb.delete(NotePad.Notes.TABLE_NAME, null, null);
     }
 
     /*
-     *  This method is called after each test method, to clean up the current fixture. Since
-     *  this sample test case runs in an isolated context, no cleanup is necessary.
+     * Closes the isolated database after each test method.
      */
     @Override
     protected void tearDown() throws Exception {
-        super.tearDown();
+        try {
+            getProvider().getOpenHelperForTest().close();
+        } finally {
+            super.tearDown();
+        }
     }
 
     /*

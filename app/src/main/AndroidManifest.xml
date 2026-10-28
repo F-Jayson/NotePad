@@ -14,13 +14,8 @@
      limitations under the License.
 -->
 
-<!-- Declare the contents of this Android application.  The namespace
-     attribute brings in the Android platform namespace, and the package
-     supplies a unique name for the application.  When writing your
-     own application, the package name must be changed from "com.example.*"
-     to come from a domain that you own or have control over. -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.android.notepad" >
+<!-- The namespace and application ID are configured in app/build.gradle. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application android:icon="@drawable/app_notes"
         android:label="@string/app_name"
@@ -31,7 +26,8 @@
             <grant-uri-permission android:pathPattern=".*" />
         </provider>
 
-        <activity android:name="NotesList" android:label="@string/title_notes_list">
+        <activity android:name="NotesList" android:label="@string/title_notes_list"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -51,6 +47,7 @@
         </activity>
 
         <activity android:name="NoteEditor"
+            android:exported="true"
             android:theme="@android:style/Theme.Holo.Light"
             android:screenOrientation="sensor"
             android:configChanges="keyboardHidden|orientation"
@@ -79,6 +76,7 @@
         </activity>
 
         <activity android:name="TitleEditor"
+            android:exported="true"
             android:label="@string/title_edit_title"
             android:icon="@drawable/ic_menu_edit"
             android:theme="@android:style/Theme.Holo.Dialog"
@@ -106,6 +104,7 @@
         </activity>
 
         <activity android:name="NotesLiveFolder" android:label="@string/live_folder_name"
+            android:exported="true"
             android:icon="@drawable/live_folder_notes">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_LIVE_FOLDER" />
