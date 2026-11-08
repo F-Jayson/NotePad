@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.android.notepad"
-        minSdk = 11
+        minSdk = 19
         targetSdk = 36
 
         testApplicationId = "com.example.android.notepad.tests"
