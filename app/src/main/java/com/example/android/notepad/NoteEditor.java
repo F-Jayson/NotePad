@@ -437,7 +437,8 @@ public class NoteEditor extends Activity {
         int id = item.getItemId();
         if(id== R.id.menu_save) {
             String text = mText.getText().toString();
-            updateNote(text, null);
+            // Pass the same title onPause will write, so the second save sees no change.
+            updateNote(text, mState == STATE_INSERT ? text : null);
             finish();
         } else if (id == R.id.menu_delete) {
             deleteNote();
@@ -524,9 +525,9 @@ public class NoteEditor extends Activity {
 
         // Sets up a map to contain values to be updated in the provider.
         ContentValues values = new ContentValues();
-        values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, System.currentTimeMillis());
 
         // If the action is to insert a new note, this creates an initial title for it.
+        boolean writeTitle = false;
         if (mState == STATE_INSERT) {
 
             // If no title was provided as an argument, create one from the note text.
@@ -548,10 +549,42 @@ public class NoteEditor extends Activity {
                     }
                 }
             }
-            // In the values map, sets the value of the title
-            values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
+            writeTitle = true;
         } else if (title != null) {
-            // In the values map, sets the value of the title
+            writeTitle = true;
+        }
+
+        String storedNote = "";
+        String storedTitle = "";
+        Cursor current = getContentResolver().query(
+                mUri,
+                new String[] {
+                        NotePad.Notes.COLUMN_NAME_NOTE,
+                        NotePad.Notes.COLUMN_NAME_TITLE
+                },
+                null,
+                null,
+                null);
+        if (current != null) {
+            if (current.moveToFirst()) {
+                storedNote = current.getString(0);
+                storedTitle = current.getString(1);
+                if (storedNote == null) {
+                    storedNote = "";
+                }
+                if (storedTitle == null) {
+                    storedTitle = "";
+                }
+            }
+            current.close();
+        }
+        // Viewing, saving again, or pausing after an explicit save must not bump modified.
+        if (text.equals(storedNote) && (!writeTitle || title.equals(storedTitle))) {
+            return;
+        }
+
+        values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, System.currentTimeMillis());
+        if (writeTitle) {
             values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
         }
 
@@ -587,11 +620,24 @@ public class NoteEditor extends Activity {
         if (mCursor != null) {
             if (mState == STATE_EDIT) {
                 // Put the original note text back into the database
+                String stored = "";
+                if (mCursor.moveToFirst()) {
+                    int index = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE);
+                    stored = mCursor.getString(index);
+                    if (stored == null) {
+                        stored = "";
+                    }
+                }
+                String original = mOriginalContent == null ? "" : mOriginalContent;
                 mCursor.close();
                 mCursor = null;
-                ContentValues values = new ContentValues();
-                values.put(NotePad.Notes.COLUMN_NAME_NOTE, mOriginalContent);
-                getContentResolver().update(mUri, values, null, null);
+                if (!original.equals(stored)) {
+                    ContentValues values = new ContentValues();
+                    values.put(NotePad.Notes.COLUMN_NAME_NOTE, original);
+                    values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE,
+                            System.currentTimeMillis());
+                    getContentResolver().update(mUri, values, null, null);
+                }
             } else if (mState == STATE_INSERT) {
                 // We inserted an empty note, make sure to delete it
                 deleteNote();

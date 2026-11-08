@@ -137,11 +137,25 @@ public class TitleEditor extends Activity {
 
         if (mCursor != null) {
 
+            String edited = mText.getText().toString();
+            String stored = "";
+            if (mCursor.moveToFirst()) {
+                stored = mCursor.getString(COLUMN_INDEX_TITLE);
+                if (stored == null) {
+                    stored = "";
+                }
+            }
+            // Opening the title editor and leaving it unchanged must not refresh the list.
+            if (edited.equals(stored)) {
+                return;
+            }
+
             // Creates a values map for updating the provider.
             ContentValues values = new ContentValues();
 
             // In the values map, sets the title to the current contents of the edit box.
-            values.put(NotePad.Notes.COLUMN_NAME_TITLE, mText.getText().toString());
+            values.put(NotePad.Notes.COLUMN_NAME_TITLE, edited);
+            values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, System.currentTimeMillis());
 
             /*
              * Updates the provider with the note's new title.
