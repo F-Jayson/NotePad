@@ -135,13 +135,22 @@ public class TitleEditor extends Activity {
         // Verifies that the query made in onCreate() actually worked. If it worked, then the
         // Cursor object is not null. If it is *empty*, then mCursor.getCount() == 0.
 
-        if (mCursor != null) {
+        if (mCursor != null && mCursor.moveToFirst()) {
+
+            // 将保存的空标题视为空字符串，只有实际改名才写入。
+            String savedTitle = mCursor.getString(COLUMN_INDEX_TITLE);
+            String title = mText.getText().toString();
+            if (title.equals(savedTitle == null ? "" : savedTitle)) {
+                return;
+            }
 
             // Creates a values map for updating the provider.
             ContentValues values = new ContentValues();
 
             // In the values map, sets the title to the current contents of the edit box.
-            values.put(NotePad.Notes.COLUMN_NAME_TITLE, mText.getText().toString());
+            values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
+            // 标题与修改时间一并保存，让列表随改名重新排序。
+            values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, System.currentTimeMillis());
 
             /*
              * Updates the provider with the note's new title.

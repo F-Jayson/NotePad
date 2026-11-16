@@ -288,8 +288,7 @@ public class NoteEditor extends Activity {
 
             // Gets the note text from the Cursor and puts it in the TextView, but doesn't change
             // the text cursor's position.
-            int colNoteIndex = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE);
-            String note = mCursor.getString(colNoteIndex);
+            String note = getSavedNoteText(); // 旧记录的空值按空正文显示。
             mText.setTextKeepState(note);
 
             // Stores the original note text, to allow the user to revert changes.
@@ -331,8 +330,7 @@ public class NoteEditor extends Activity {
      * to it to complete their work. The act of going away should save everything and leave the
      * Activity in a state where Android can destroy it if necessary.
      *
-     * If the user hasn't done anything, then this deletes or clears out the note, otherwise it
-     * writes the user's work to the provider.
+     * 保存待提交的改动，退出时清理空草稿或正文被清空的笔记。
      */
     @Override
     protected void onPause() {
@@ -350,13 +348,9 @@ public class NoteEditor extends Activity {
             String text = mText.getText().toString();
             int length = text.length();
 
-            /*
-             * If the Activity is in the midst of finishing and there is no text in the current
-             * note, returns a result of CANCELED to the caller, and deletes the note. This is done
-             * even if the note was being edited, the assumption being that the user wanted to
-             * "clear out" (delete) the note.
-             */
-            if (isFinishing() && (length == 0)) {
+            // 退出时删除空草稿和被清空的笔记，仅查看已有空笔记时保留原记录。
+            if (isFinishing() && length == 0
+                    && (mState == STATE_INSERT || !getSavedNoteText().isEmpty())) {
                 setResult(RESULT_CANCELED);
                 deleteNote();
 
@@ -369,10 +363,11 @@ public class NoteEditor extends Activity {
             } else if (mState == STATE_EDIT) {
                 // Creates a map to contain the new values for the columns
                 updateNote(text, null);
-            } else if (mState == STATE_INSERT) {
+            } else if (mState == STATE_INSERT && length > 0) {
+                // 输入正文后才生成初始标题并切换为编辑状态。
                 updateNote(text, text);
                 mState = STATE_EDIT;
-          }
+            }
         }
     }
 
@@ -411,8 +406,7 @@ public class NoteEditor extends Activity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         // Check if note has changed and enable/disable the revert option
-        int colNoteIndex = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE);
-        String savedNote = mCursor.getString(colNoteIndex);
+        String savedNote = getSavedNoteText(); // 将库中的空值按空字符串参与比较。
         String currentNote = mText.getText().toString();
         if (savedNote.equals(currentNote)) {
             menu.findItem(R.id.menu_revert).setVisible(false);
@@ -436,8 +430,7 @@ public class NoteEditor extends Activity {
         // Handle all of the possible menu actions.
         int id = item.getItemId();
         if(id== R.id.menu_save) {
-            String text = mText.getText().toString();
-            updateNote(text, null);
+            // 保存和返回都由 onPause 写入，避免保存按钮触发两次更新。
             finish();
         } else if (id == R.id.menu_delete) {
             deleteNote();
@@ -515,48 +508,50 @@ public class NoteEditor extends Activity {
     }
 //END_INCLUDE(paste)
 
+    // 统一读取正文，让显示、撤销比较和保存比较使用同一套空值规则。
+    private String getSavedNoteText() {
+        int column = mCursor.getColumnIndexOrThrow(NotePad.Notes.COLUMN_NAME_NOTE);
+        String note = mCursor.getString(column);
+        return note == null ? "" : note;
+    }
+
     /**
      * Replaces the current note contents with the text and title provided as arguments.
      * @param text The new note contents to use.
      * @param title The new note title to use
      */
     private final void updateNote(String text, String title) {
+        // 粘贴会在 onResume 前调用此方法，此时游标需要先定位到笔记行。
+        if (!mCursor.moveToFirst()) {
+            return;
+        }
 
-        // Sets up a map to contain values to be updated in the provider.
-        ContentValues values = new ContentValues();
-        values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, System.currentTimeMillis());
-
-        // If the action is to insert a new note, this creates an initial title for it.
-        if (mState == STATE_INSERT) {
-
-            // If no title was provided as an argument, create one from the note text.
-            if (title == null) {
-  
-                // Get the note's length
-                int length = text.length();
-
-                // Sets the title by getting a substring of the text that is 31 characters long
-                // or the number of characters in the note plus one, whichever is smaller.
-                title = text.substring(0, Math.min(30, length));
-  
-                // If the resulting length is more than 30 characters, chops off any
-                // trailing spaces
-                if (length > 30) {
-                    int lastSpace = title.lastIndexOf(' ');
-                    if (lastSpace > 0) {
-                        title = title.substring(0, lastSpace);
-                    }
+        // 粘贴纯文本时用正文生成标题，优先在前 30 个字符内的空格处截断。
+        if (mState == STATE_INSERT && title == null) {
+            title = text.substring(0, Math.min(30, text.length()));
+            if (text.length() > 30) {
+                int lastSpace = title.lastIndexOf(' ');
+                if (lastSpace > 0) {
+                    title = title.substring(0, lastSpace);
                 }
             }
-            // In the values map, sets the value of the title
-            values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
-        } else if (title != null) {
-            // In the values map, sets the value of the title
+        }
+
+        // 只提交发生变化的字段，单改正文时保留已有标题。
+        ContentValues values = new ContentValues();
+        if (!text.equals(getSavedNoteText())) {
+            values.put(NotePad.Notes.COLUMN_NAME_NOTE, text);
+        }
+        int titleColumn = mCursor.getColumnIndexOrThrow(NotePad.Notes.COLUMN_NAME_TITLE);
+        if (title != null && !title.equals(mCursor.getString(titleColumn))) {
             values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
         }
 
-        // This puts the desired notes text into the map.
-        values.put(NotePad.Notes.COLUMN_NAME_NOTE, text);
+        // 正文和标题都无变化时直接返回，避免仅查看时推进修改时间。
+        if (values.size() == 0) {
+            return;
+        }
+        values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, System.currentTimeMillis());
 
         /*
          * Updates the provider with the new values in the map. The ListView is updated

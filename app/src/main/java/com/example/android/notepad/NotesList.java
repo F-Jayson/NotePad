@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -38,6 +39,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 
 /**
@@ -61,6 +63,7 @@ public class NotesList extends ListActivity {
     private static final String[] PROJECTION = new String[] {
             NotePad.Notes._ID, // 0
             NotePad.Notes.COLUMN_NAME_TITLE, // 1
+            NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, // 追加时间列，保留标题列的索引。
     };
 
     /** The index of the title column */
@@ -103,7 +106,7 @@ public class NotesList extends ListActivity {
          */
         Cursor cursor = managedQuery(
             getIntent().getData(),            // Use the default content URI for the provider.
-            PROJECTION,                       // Return the note ID and title for each note.
+            PROJECTION,                       // 查询笔记 ID、标题和修改时间。
             null,                             // No where clause, return all records.
             null,                             // No where clause, therefore no where column values.
             NotePad.Notes.DEFAULT_SORT_ORDER  // Use the default sort order.
@@ -117,12 +120,14 @@ public class NotesList extends ListActivity {
          * value will appear in the ListView.
          */
 
-        // The names of the cursor columns to display in the view, initialized to the title column
-        String[] dataColumns = { NotePad.Notes.COLUMN_NAME_TITLE } ;
+        // 按标题、修改时间的顺序绑定到列表项中的两个文本控件。
+        String[] dataColumns = {
+                NotePad.Notes.COLUMN_NAME_TITLE,
+                NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE
+        };
 
-        // The view IDs that will display the cursor columns, initialized to the TextView in
-        // noteslist_item.xml
-        int[] viewIDs = { android.R.id.text1 };
+        // 保留原有标题控件 ID，在标题下方绑定修改时间。
+        int[] viewIDs = { android.R.id.text1, R.id.note_modified };
 
         // Creates the backing adapter for the ListView.
         SimpleCursorAdapter adapter
@@ -133,6 +138,23 @@ public class NotesList extends ListActivity {
                       dataColumns,
                       viewIDs
               );
+        // 标题沿用默认绑定，时间按设备本地格式显示。
+        adapter.setViewBinder((view, row, columnIndex) -> {
+            if (view.getId() != R.id.note_modified) {
+                return false;
+            }
+
+            TextView modifiedView = (TextView) view;
+            // 先判断历史记录中的空值，避免将缺失时间错误显示为 1970 年。
+            if (row.isNull(columnIndex)) {
+                modifiedView.setText(R.string.note_modified_unknown);
+            } else {
+                int flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR
+                        | DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_MONTH;
+                modifiedView.setText(DateUtils.formatDateTime(this, row.getLong(columnIndex), flags));
+            }
+            return true;
+        });
 
         // Sets the ListView's adapter to be the cursor adapter that was just created.
         setListAdapter(adapter);
