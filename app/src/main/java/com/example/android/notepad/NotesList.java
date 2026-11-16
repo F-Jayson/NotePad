@@ -18,6 +18,8 @@ package com.example.android.notepad;
 
 import com.example.android.notepad.NotePad;
 
+import java.util.regex.Pattern;
+
 import android.app.ListActivity;
 import android.content.ClipboardManager;
 import android.content.ClipData;
@@ -38,6 +40,7 @@ import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
@@ -69,6 +72,18 @@ public class NotesList extends ListActivity {
     /** The index of the title column */
     private static final int COLUMN_INDEX_TITLE = 1;
 
+    // 使用参数绑定传递搜索词，两个 LIKE 条件共同作用于当前 URI 的结果。
+    private static final String SEARCH_SELECTION =
+            "(" + NotePad.Notes.COLUMN_NAME_TITLE + " LIKE ? ESCAPE '\\' OR "
+                    + NotePad.Notes.COLUMN_NAME_NOTE + " LIKE ? ESCAPE '\\')";
+    // 将全角空格等 Unicode 分隔符也视为纯空白输入。
+    private static final Pattern BLANK_QUERY = Pattern.compile("[\\s\\p{Z}]*");
+    private static final String STATE_SEARCH_QUERY = "searchQuery";
+
+    // 适配器持有当前查询游标，关键词在打开编辑器和重建列表时保留。
+    private SimpleCursorAdapter adapter;
+    private String searchQuery = "";
+
     /**
      * onCreate is called when Android starts this Activity from scratch.
      */
@@ -92,25 +107,18 @@ public class NotesList extends ListActivity {
             intent.setData(NotePad.Notes.CONTENT_URI);
         }
 
+        // 使用 ListActivity 的标准列表与空状态 ID，复用原有行点击入口。
+        setContentView(R.layout.notes_list);
+        if (savedInstanceState != null) {
+            searchQuery = savedInstanceState.getString(STATE_SEARCH_QUERY, "");
+        }
+
         /*
          * Sets the callback for context menu activation for the ListView. The listener is set
          * to be this Activity. The effect is that context menus are enabled for items in the
          * ListView, and the context menu is handled by a method in NotesList.
          */
         getListView().setOnCreateContextMenuListener(this);
-
-        /* Performs a managed query. The Activity handles closing and requerying the cursor
-         * when needed.
-         *
-         * Please see the introductory note about performing provider operations on the UI thread.
-         */
-        Cursor cursor = managedQuery(
-            getIntent().getData(),            // Use the default content URI for the provider.
-            PROJECTION,                       // 查询笔记 ID、标题和修改时间。
-            null,                             // No where clause, return all records.
-            null,                             // No where clause, therefore no where column values.
-            NotePad.Notes.DEFAULT_SORT_ORDER  // Use the default sort order.
-        );
 
         /*
          * The following two arrays create a "map" between columns in the cursor and view IDs
@@ -129,12 +137,12 @@ public class NotesList extends ListActivity {
         // 保留原有标题控件 ID，在标题下方绑定修改时间。
         int[] viewIDs = { android.R.id.text1, R.id.note_modified };
 
-        // Creates the backing adapter for the ListView.
-        SimpleCursorAdapter adapter
+        // 沿用适配器的变更监听，初始游标由 onResume 查询后交给适配器。
+        adapter
             = new SimpleCursorAdapter(
                       this,                             // The Context for the ListView
                       R.layout.noteslist_item,          // Points to the XML for a list item
-                      cursor,                           // The cursor to get items from
+                      null,                             // 先完成列表绑定，再载入查询结果。
                       dataColumns,
                       viewIDs
               );
@@ -160,6 +168,47 @@ public class NotesList extends ListActivity {
         setListAdapter(adapter);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 编辑、新建或改标题后，按当前搜索词重新确定哪些笔记仍然匹配。
+        refreshNotes();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // 旋转等界面重建后恢复搜索词。
+        outState.putString(STATE_SEARCH_QUERY, searchQuery);
+    }
+
+    @Override
+    protected void onDestroy() {
+        // changeCursor 会关闭被替换的游标，销毁列表时以 null 释放最后一个。
+        adapter.changeCursor(null);
+        super.onDestroy();
+    }
+
+    private void refreshNotes() {
+        String selection = null;
+        String[] selectionArgs = null;
+        boolean searching = !BLANK_QUERY.matcher(searchQuery).matches();
+        if (searching) {
+            // 先转义反斜杠，再转义 LIKE 的两个通配符；单引号由参数绑定处理。
+            String keyword = searchQuery.replace("\\", "\\\\")
+                    .replace("%", "\\%").replace("_", "\\_");
+            String pattern = "%" + keyword + "%";
+            selection = SEARCH_SELECTION;
+            selectionArgs = new String[] { pattern, pattern };
+        }
+
+        // 切换查询时复用原 URI、投影与排序，由适配器关闭旧游标。
+        TextView emptyView = findViewById(android.R.id.empty);
+        emptyView.setText(searching ? R.string.search_no_results : R.string.notes_empty);
+        adapter.changeCursor(getContentResolver().query(getIntent().getData(), PROJECTION,
+                selection, selectionArgs, NotePad.Notes.DEFAULT_SORT_ORDER));
+    }
+
     /**
      * Called when the user clicks the device's Menu button the first time for
      * this Activity. Android passes in a Menu object that is populated with items.
@@ -178,6 +227,34 @@ public class NotesList extends ListActivity {
         // Inflate menu from XML resource
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.list_options_menu, menu);
+
+        // 原生搜索框只负责收集输入，界面重建时先恢复文本，再监听后续变化。
+        MenuItem searchItem = menu.findItem(R.id.menu_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setQueryHint(getString(R.string.search_hint));
+        if (!searchQuery.isEmpty()) {
+            searchItem.expandActionView();
+            searchView.setQuery(searchQuery, false);
+            searchView.clearFocus();
+        }
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // 输入时已筛选，提交时收起键盘以便点选结果。
+                searchView.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // 清空或收起搜索框也会收到文本变化，届时恢复全量查询。
+                if (!searchQuery.equals(newText)) {
+                    searchQuery = newText;
+                    refreshNotes();
+                }
+                return true;
+            }
+        });
 
         // Generate any additional actions that can be performed on the
         // overall list.  In a normal install, there are no additional
@@ -361,8 +438,8 @@ public class NotesList extends ListActivity {
         // as well.  This does a query on the system for any activities that
         // implement the ALTERNATIVE_ACTION for our data, adding a menu item
         // for each one that is found.
-        Intent intent = new Intent(null, Uri.withAppendedPath(getIntent().getData(), 
-                                        Integer.toString((int) info.id) ));
+        // 改标题等附加操作也使用筛选结果行的完整 ID。
+        Intent intent = new Intent(null, ContentUris.withAppendedId(getIntent().getData(), info.id));
         intent.addCategory(Intent.CATEGORY_ALTERNATIVE);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         menu.addIntentOptions(Menu.CATEGORY_ALTERNATIVE, 0, 0,

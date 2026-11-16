@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!--  This is our one standard application action (creating a new note). -->
+    <!-- 展开系统搜索框，收起后回到原列表操作栏。 -->
+    <item android:id="@+id/menu_search"
+          android:icon="@android:drawable/ic_menu_search"
+          android:title="@string/menu_search"
+          android:actionViewClass="android.widget.SearchView"
+          android:showAsAction="always|collapseActionView" />
+    <!-- 保留原有的新建入口。 -->
     <item android:id="@+id/menu_add"
           android:icon="@drawable/ic_menu_compose"
           android:title="@string/menu_add"

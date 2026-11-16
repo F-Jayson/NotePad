@@ -25,6 +25,12 @@
     <!-- 历史笔记缺少最后修改时间时显示的占位符。 -->
     <string name="note_modified_unknown">—</string>
 
+    <!-- 列表搜索入口、输入提示和两种空结果提示。 -->
+    <string name="menu_search">Search notes</string>
+    <string name="search_hint">Search titles or notes</string>
+    <string name="search_no_results">No matching notes</string>
+    <string name="notes_empty">No notes yet</string>
+
     <string name="menu_add">New note</string>
     <string name="menu_save">Save</string>
     <string name="menu_delete">Delete</string>
