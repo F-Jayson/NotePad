@@ -18,9 +18,13 @@ package com.example.android.notepad;
 
 import com.example.android.notepad.NotePad;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import android.app.ListActivity;
+import android.content.ActivityNotFoundException;
 import android.content.ClipboardManager;
 import android.content.ClipData;
 import android.content.ComponentName;
@@ -30,6 +34,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -43,6 +49,7 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 /**
@@ -79,10 +86,18 @@ public class NotesList extends ListActivity {
     // 将全角空格等 Unicode 分隔符也视为纯空白输入。
     private static final Pattern BLANK_QUERY = Pattern.compile("[\\s\\p{Z}]*");
     private static final String STATE_SEARCH_QUERY = "searchQuery";
+    // 导出单条笔记的系统文件创建器请求码与状态恢复键。
+    private static final int REQUEST_CODE_EXPORT_NOTE = 1001;
+    private static final String STATE_PENDING_EXPORT_URI = "pendingExportUri";
+    // 使用独立的单线程执行器在后台复制纯文本流，避免阻塞界面线程或与 Provider 管道线程争用队列。
+    private static final ExecutorService EXPORT_EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
 
     // 适配器持有当前查询游标，关键词在打开编辑器和重建列表时保留。
     private SimpleCursorAdapter adapter;
     private String searchQuery = "";
+    // 暂存等待系统文件选择器返回的待导出笔记 URI，避免同名笔记混淆。
+    private Uri pendingExportUri;
 
     /**
      * onCreate is called when Android starts this Activity from scratch.
@@ -111,6 +126,11 @@ public class NotesList extends ListActivity {
         setContentView(R.layout.notes_list);
         if (savedInstanceState != null) {
             searchQuery = savedInstanceState.getString(STATE_SEARCH_QUERY, "");
+            // 若在等待文件选择器返回期间发生配置变更或重建，恢复待导出的笔记 URI。
+            String savedExportUri = savedInstanceState.getString(STATE_PENDING_EXPORT_URI);
+            if (savedExportUri != null) {
+                pendingExportUri = Uri.parse(savedExportUri);
+            }
         }
 
         /*
@@ -175,11 +195,17 @@ public class NotesList extends ListActivity {
         refreshNotes();
     }
 
+    // 保存界面状态：在旋转、切换应用或拉起系统文件选择器导致 Activity 重建时，
+    // 持久化当前搜索关键词与尚未完成回调的待导出笔记 URI。
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         // 旋转等界面重建后恢复搜索词。
         outState.putString(STATE_SEARCH_QUERY, searchQuery);
+        // 同步保存尚未返回结果的待导出笔记 URI，防止 Activity 重建后丢失目标对象。
+        if (pendingExportUri != null) {
+            outState.putString(STATE_PENDING_EXPORT_URI, pendingExportUri.toString());
+        }
     }
 
     @Override
@@ -509,6 +535,10 @@ public class NotesList extends ListActivity {
             // Returns to the caller and skips further processing.
             return true;
             //END_INCLUDE(copy)
+        } else if (id == R.id.context_export) {
+            // 绑定长按行真实 ID 构造的笔记 URI，并交由系统文档创建器选择保存位置。
+            startExportNote(noteUri, info.position);
+            return true;
         } else if (id == R.id.context_delete) {
             // Deletes the note from the provider by passing in a URI in note ID format.
             // Please see the introductory note about performing provider operations on the
@@ -558,5 +588,96 @@ public class NotesList extends ListActivity {
             // Intent's data is the note ID URI. The effect is to call NoteEdit.
             startActivity(new Intent(Intent.ACTION_EDIT, uri));
         }
+    }
+
+    // 启动系统文档创建器（ACTION_CREATE_DOCUMENT），让用户自行选择保存目录与文件名。
+    // 发起前将基于真实行 ID 构造的 noteUri 存入 pendingExportUri，position 用于读取建议文件名；
+    // 这样即使存在同名笔记或等待回调期间界面重建，仍能精确定位源笔记。
+    private void startExportNote(Uri noteUri, int position) {
+        // 先解析该行笔记标题并清理成合法的 .txt 建议文件名。
+        String noteTitle = resolveNoteTitle(noteUri, position);
+        String suggestedFileName = NoteExporter.buildSuggestedFileName(
+                noteTitle, getString(R.string.export_default_filename));
+
+        // 构造系统文档创建意图，声明可打开的纯文本类型及预填文件名。
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(NoteExporter.MIME_TYPE_TEXT_PLAIN);
+        intent.putExtra(Intent.EXTRA_TITLE, suggestedFileName);
+
+        // 先保存目标笔记身份再跳转，避免回调到达前状态未落定。
+        pendingExportUri = noteUri;
+        try {
+            startActivityForResult(intent, REQUEST_CODE_EXPORT_NOTE);
+        } catch (ActivityNotFoundException e) {
+            // 极少数精简系统若缺失文档创建器，及时清理暂存状态并提示用户。
+            pendingExportUri = null;
+            Log.e(TAG, "No activity found to handle ACTION_CREATE_DOCUMENT", e);
+            Toast.makeText(this, R.string.export_no_picker, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // 读取指定笔记的标题，供生成默认导出文件名使用。
+    // 优先从当前列表游标按 position 直接取值；若游标已关闭或不可用，则按单条 noteUri 补查数据库，
+    // 仍查不到时返回 null，由调用方回退至默认文件名。
+    private String resolveNoteTitle(Uri noteUri, int position) {
+        Object item = getListAdapter().getItem(position);
+        if (item instanceof Cursor) {
+            Cursor cursor = (Cursor) item;
+            if (!cursor.isClosed()) {
+                return cursor.getString(COLUMN_INDEX_TITLE);
+            }
+        }
+        // 兜底按单条 URI 精确查询标题列，并由 try-with-resources 确保临时游标关闭。
+        try (Cursor cursor = getContentResolver().query(
+                noteUri, new String[] { NotePad.Notes.COLUMN_NAME_TITLE }, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getString(0);
+            }
+        }
+        return null;
+    }
+
+    // 接收系统文档创建器返回的结果并驱动后台流复制。
+    // 区分用户取消、返回参数或源身份异常以及正常选定目标 URI 三种情况；
+    // 正常确认后在独立后台线程复制纯文本流，待实际落盘关闭完成后再切回主线程提示成功或失败。
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode != REQUEST_CODE_EXPORT_NOTE) {
+            super.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
+
+        // 无论结果如何都先消费并清空暂存的源笔记 URI，避免后续操作误用旧对象。
+        final Uri sourceUri = pendingExportUri;
+        pendingExportUri = null;
+
+        if (resultCode == RESULT_CANCELED) {
+            Toast.makeText(this, R.string.export_cancelled, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final Uri targetUri = data != null ? data.getData() : null;
+        if (resultCode != RESULT_OK || sourceUri == null || targetUri == null) {
+            Toast.makeText(this, R.string.export_failed, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 使用 Application Context 执行后台复制与结果提示，防止导出期间旋转屏幕造成 Activity 泄漏。
+        final Context appContext = getApplicationContext();
+        EXPORT_EXECUTOR.execute(() -> {
+            int messageResId;
+            try {
+                NoteExporter.exportNoteToUri(appContext.getContentResolver(), sourceUri, targetUri);
+                messageResId = R.string.export_success;
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to export note " + sourceUri + " to " + targetUri, e);
+                messageResId = R.string.export_failed;
+            }
+            // 仅在流复制与关闭输出流全部完成后，切回主线程向用户反馈最终结果。
+            final int finalMessageResId = messageResId;
+            MAIN_HANDLER.post(() -> Toast.makeText(
+                    appContext, finalMessageResId, Toast.LENGTH_SHORT).show());
+        });
     }
 }

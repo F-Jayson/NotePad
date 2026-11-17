@@ -39,6 +39,14 @@
     <string name="menu_copy">Copy</string>
     <string name="menu_paste">Paste</string>
 
+    <!-- 单条笔记导出为文本的菜单项、默认文件名及状态提示。 -->
+    <string name="menu_export">导出为文本</string>
+    <string name="export_default_filename">笔记</string>
+    <string name="export_success">笔记已导出</string>
+    <string name="export_cancelled">已取消导出</string>
+    <string name="export_failed">导出笔记失败</string>
+    <string name="export_no_picker">未找到可用的文件选择器</string>
+
     <string name="button_ok">OK</string>
     <string name="text_title">Title:</string>
 
