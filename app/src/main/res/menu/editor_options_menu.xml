@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 编辑器菜单：图标换为随深浅色变化的矢量图标，菜单项与原有行为保持不变。 -->
+<!-- 保留深浅色操作图标，纸张通过独立的单选菜单切换。 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/menu_save"
           android:icon="@drawable/ic_np_check"
           android:alphabeticShortcut='s'
           android:title="@string/menu_save"
           android:showAsAction="ifRoom" />
+    <item android:id="@+id/menu_paper"
+          android:title="@string/menu_paper"
+          android:showAsAction="always">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/paper_white" android:title="@string/paper_white" />
+                <item android:id="@+id/paper_warm" android:title="@string/paper_warm" />
+            </group>
+        </menu>
+    </item>
     <item android:id="@+id/menu_revert"
           android:icon="@drawable/ic_np_undo"
           android:title="@string/menu_revert"

@@ -25,8 +25,7 @@
         <item name="android:windowAnimationStyle">@style/NotePad.ActivityAnimation</item>
     </style>
 
-    <!-- 正文编辑器：保留系统操作栏承载保存、撤销、删除菜单，只把颜色与图标统一为应用风格。
-         正文字号、行距和纸张背景留给 T05。 -->
+    <!-- 正文编辑器保留系统操作栏，纸张颜色由编辑器单独应用。 -->
     <style name="Theme.NotePad.Editor" parent="Platform.Editor">
         <item name="android:windowBackground">@color/np_background</item>
         <item name="android:colorBackground">@color/np_background</item>

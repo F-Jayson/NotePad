@@ -61,6 +61,10 @@
 
     <string name="menu_add">新建笔记</string>
     <string name="menu_save">保存</string>
+    <!-- 编辑器纸张单选菜单。 -->
+    <string name="menu_paper">纸张</string>
+    <string name="paper_white">白纸</string>
+    <string name="paper_warm">暖纸</string>
     <string name="menu_delete">删除</string>
     <string name="menu_open">打开</string>
     <string name="menu_revert">撤销修改</string>

@@ -36,6 +36,8 @@ final class ThemeHelper {
     // 外观选择的保存位置与三种取值。
     private static final String PREFS_NAME = "appearance";
     private static final String KEY_MODE = "theme_mode";
+    // 纸张样式独立于昼夜模式，切换主题时沿用同一种纸张。
+    private static final String KEY_WARM_PAPER = "warm_paper";
     static final int MODE_SYSTEM = 0;
     static final int MODE_LIGHT = 1;
     static final int MODE_DARK = 2;
@@ -55,6 +57,15 @@ final class ThemeHelper {
     static void setMode(Context context, int mode) {
         // 重建 Activity 时会从同一个内存中的偏好对象读取，apply 足以保证立即可见。
         prefs(context).edit().putInt(KEY_MODE, mode).apply();
+    }
+
+    /** 所有笔记共用纸张选择，首次打开使用白纸。 */
+    static boolean usesWarmPaper(Context context) {
+        return prefs(context).getBoolean(KEY_WARM_PAPER, false);
+    }
+
+    static void setWarmPaper(Context context, boolean warm) {
+        prefs(context).edit().putBoolean(KEY_WARM_PAPER, warm).apply();
     }
 
     /**

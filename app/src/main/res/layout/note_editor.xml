@@ -13,22 +13,30 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<!-- T04 只统一编辑器的颜色与左右留白，使其在深浅两种模式下都可读；字号、行距与纸张背景留给 T05。 -->
-<view xmlns:android="http://schemas.android.com/apk/res/android"
-    class="com.example.android.notepad.NoteEditor$LinedEditText"
-    android:id="@+id/note"
+<!-- 外层处理系统栏留白，避免窗口 Insets 覆盖正文的页边距。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="@android:color/transparent"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:scrollbars="vertical"
-    android:fadingEdge="vertical"
-    android:gravity="top"
-    android:textSize="22sp"
-    android:textColor="@color/np_text_primary"
-    android:capitalize="sentences"
-/>
+    android:background="@color/np_background">
+
+    <!-- 纸张由原输入框承载，横线和正文共用左右页边距。 -->
+    <view
+        class="com.example.android.notepad.NoteEditor$LinedEditText"
+        android:id="@+id/note"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/np_paper_white"
+        android:paddingStart="@dimen/np_page_margin"
+        android:paddingEnd="@dimen/np_page_margin"
+        android:paddingTop="12dp"
+        android:paddingBottom="14dp"
+        android:scrollbars="vertical"
+        android:fadingEdge="vertical"
+        android:gravity="top|start"
+        android:textSize="18sp"
+        android:lineSpacingExtra="6sp"
+        android:textColor="@color/np_text_primary"
+        android:inputType="textCapSentences|textMultiLine"
+        android:imeOptions="flagNoExtractUi" />
+</FrameLayout>

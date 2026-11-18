@@ -30,9 +30,9 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
@@ -77,26 +77,28 @@ public class NoteEditor extends Activity {
     private int mState;
     private Uri mUri;
     private Cursor mCursor;
-    private EditText mText;
+    private LinedEditText mText;
     private String mOriginalContent;
 
     /**
      * Defines a custom EditText View that draws lines between each line of text that is displayed.
      */
     public static class LinedEditText extends EditText {
-        private Rect mRect;
-        private Paint mPaint;
+        private final Paint rulePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final float baselineGap;
 
         // This constructor is used by LayoutInflater
         public LinedEditText(Context context, AttributeSet attrs) {
             super(context, attrs);
+            float density = getResources().getDisplayMetrics().density;
+            rulePaint.setStrokeWidth(Math.max(1f, density * 0.65f));
+            baselineGap = density * 4;
+        }
 
-            // Creates a Rect and a Paint object, and sets the style and color of the Paint object.
-            mRect = new Rect();
-            mPaint = new Paint();
-            mPaint.setStyle(Paint.Style.STROKE);
-            // T04 随深浅色统一横线颜色，纸张背景与行距留给 T05。
-            mPaint.setColor(context.getResources().getColor(R.color.np_editor_line));
+        // 切换纸张时只重画横线，输入框继续持有原有文本、选区和输入法连接。
+        void setRuleColor(int color) {
+            rulePaint.setColor(color);
+            invalidate();
         }
 
         /**
@@ -105,28 +107,33 @@ public class NoteEditor extends Activity {
          */
         @Override
         protected void onDraw(Canvas canvas) {
-
-            // Gets the number of lines of text in the View.
-            int count = getLineCount();
-
-            // Gets the global Rect and Paint objects
-            Rect r = mRect;
-            Paint paint = mPaint;
-
-            /*
-             * Draws one line in the rectangle for every line of text in the EditText
-             */
-            for (int i = 0; i < count; i++) {
-
-                // Gets the baseline coordinates for the current line of text
-                int baseline = getLineBounds(i, r);
-
-                /*
-                 * Draws a line in the background from the left of the rectangle to the right,
-                 * at a vertical position one dip below the baseline, using the "paint" object
-                 * for details.
-                 */
-                canvas.drawLine(r.left, baseline + 1, r.right, baseline + 1, paint);
+            Layout layout = getLayout();
+            if (layout != null && layout.getLineCount() > 0) {
+                // 绘制坐标包含滚动偏移，只遍历当前视口内的排版行。
+                int paddingTop = getExtendedPaddingTop();
+                int top = getScrollY() + paddingTop;
+                int bottom = getScrollY() + getHeight() - getExtendedPaddingBottom();
+                int left = getCompoundPaddingLeft();
+                int right = getWidth() - getCompoundPaddingRight();
+                int first = layout.getLineForVertical(top - paddingTop);
+                int last = layout.getLineForVertical(bottom - paddingTop);
+                canvas.save();
+                canvas.clipRect(left, top, right, bottom);
+                float ruleY = 0f;
+                for (int line = first; line <= last; line++) {
+                    ruleY = paddingTop + layout.getLineBaseline(line) + baselineGap;
+                    canvas.drawLine(left, ruleY, right, ruleY, rulePaint);
+                }
+                if (last == layout.getLineCount() - 1) {
+                    // 用实际基线间距延续空白区横线，兼容中文回退字体。
+                    int step = last > 0 ? layout.getLineBaseline(last) - layout.getLineBaseline(last - 1)
+                            : getLineHeight();
+                    step = Math.max(1, step);
+                    for (float y = ruleY + step; y < bottom; y += step) {
+                        canvas.drawLine(left, y, right, y, rulePaint);
+                    }
+                }
+                canvas.restore();
             }
 
             // Finishes up by calling the parent method
@@ -237,7 +244,7 @@ public class NoteEditor extends Activity {
         setContentView(R.layout.note_editor);
 
         // Gets a handle to the EditText in the the layout.
-        mText = (EditText) findViewById(R.id.note);
+        mText = findViewById(R.id.note);
 
         /*
          * If this Activity had stopped previously, its state was written the ORIGINAL_CONTENT
@@ -259,6 +266,11 @@ public class NoteEditor extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (mText == null) {
+            return;
+        }
+        // 全局纸张选择随每次打开编辑页生效。
+        applyPaper(ThemeHelper.usesWarmPaper(this));
 
         /*
          * mCursor is initialized, since onCreate() always precedes onResume for any running
@@ -412,8 +424,19 @@ public class NoteEditor extends Activity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    // 在同一个输入框上更新纸面、墨色和横线，正文保存仍由 Activity 原有流程处理。
+    private void applyPaper(boolean warm) {
+        Resources res = getResources();
+        mText.setBackgroundColor(res.getColor(warm ? R.color.np_paper_warm : R.color.np_paper_white));
+        mText.setTextColor(res.getColor(warm ? R.color.np_paper_warm_ink : R.color.np_text_primary));
+        mText.setRuleColor(res.getColor(warm ? R.color.np_paper_warm_line : R.color.np_editor_line));
+    }
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
+        // 单选勾选反映已保存的纸张偏好。
+        menu.findItem(ThemeHelper.usesWarmPaper(this) ? R.id.paper_warm : R.id.paper_white)
+                .setChecked(true);
         // Check if note has changed and enable/disable the revert option
         String savedNote = getSavedNoteText(); // 将库中的空值按空字符串参与比较。
         String currentNote = mText.getText().toString();
@@ -438,6 +461,14 @@ public class NoteEditor extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle all of the possible menu actions.
         int id = item.getItemId();
+        if (id == R.id.paper_white || id == R.id.paper_warm) {
+            // 外观选择只更新偏好和控件颜色，保留光标与滚动位置。
+            boolean warm = id == R.id.paper_warm;
+            ThemeHelper.setWarmPaper(this, warm);
+            applyPaper(warm);
+            item.setChecked(true);
+            return true;
+        }
         if(id== R.id.menu_save) {
             // 保存和返回都由 onPause 写入，避免保存按钮触发两次更新。
             finish();

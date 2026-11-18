@@ -39,7 +39,11 @@
     <color name="np_surface">#FFFDFEFE</color>
     <color name="np_chip">#0F16302C</color>
 
-    <!-- 编辑器横线颜色，T05 会继续调整编辑器排版 -->
+    <!-- 浅色编辑器中的白纸、暖纸及横线。 -->
+    <color name="np_paper_white">#FFFFFFFF</color>
+    <color name="np_paper_warm">#FFFFF4DE</color>
+    <color name="np_paper_warm_ink">#FF45392E</color>
+    <color name="np_paper_warm_line">#FFE5D5B8</color>
     <color name="np_editor_line">#2416302C</color>
 
     <!-- 低版本系统栏图标无法变深时使用的半透明遮罩 -->
