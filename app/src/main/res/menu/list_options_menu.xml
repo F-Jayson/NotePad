@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 列表页选项菜单。T04 起搜索改由顶部常驻搜索框承担，新建由右下角按钮和本菜单共同提供；
+     本菜单由顶部“更多”按钮以弹出菜单形式展示，也响应实体菜单键。 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 展开系统搜索框，收起后回到原列表操作栏。 -->
-    <item android:id="@+id/menu_search"
-          android:icon="@android:drawable/ic_menu_search"
-          android:title="@string/menu_search"
-          android:actionViewClass="android.widget.SearchView"
-          android:showAsAction="always|collapseActionView" />
     <!-- 保留原有的新建入口。 -->
     <item android:id="@+id/menu_add"
           android:icon="@drawable/ic_menu_compose"
           android:title="@string/menu_add"
-          android:alphabeticShortcut='a'
-          android:showAsAction="always" />
+          android:alphabeticShortcut='a' />
     <!--  If there is currently data in the clipboard, this adds a PASTE menu item to the menu
           so that the user can paste in the data.. -->
     <item android:id="@+id/menu_paste"
           android:icon="@drawable/ic_menu_compose"
           android:title="@string/menu_paste"
           android:alphabeticShortcut='p' />
+    <!-- 勾选后深浅色跟随系统；取消勾选则固定为当前外观，可用顶部按钮切换。 -->
+    <item android:id="@+id/menu_follow_system"
+          android:title="@string/menu_follow_system"
+          android:checkable="true" />
 </menu>

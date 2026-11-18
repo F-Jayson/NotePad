@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 被覆盖的页面轻微缩小变暗，营造层次。 -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/decelerate_cubic"
+    android:zAdjustment="bottom">
+    <scale android:fromXScale="1" android:toXScale="0.96" android:fromYScale="1" android:toYScale="0.96"
+        android:pivotX="50%" android:pivotY="50%" android:duration="320" />
+    <alpha android:fromAlpha="1" android:toAlpha="0.6" android:duration="320" />
+</set>

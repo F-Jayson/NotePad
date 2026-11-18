@@ -95,7 +95,8 @@ public class NoteEditor extends Activity {
             mRect = new Rect();
             mPaint = new Paint();
             mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setColor(0x800000FF);
+            // T04 随深浅色统一横线颜色，纸张背景与行距留给 T05。
+            mPaint.setColor(context.getResources().getColor(R.color.np_editor_line));
         }
 
         /**
@@ -133,6 +134,13 @@ public class NoteEditor extends Activity {
         }
     }
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(newBase);
+        // 跟随列表页的深浅色选择。
+        ThemeHelper.applyNightMode(this, newBase);
+    }
+
     /**
      * This method is called by Android when the Activity is first started. From the incoming
      * Intent, it determines what kind of editing is desired, and then does it.
@@ -140,6 +148,7 @@ public class NoteEditor extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeHelper.setupSystemBars(this, false);
 
         /*
          * Creates an Intent to use when the Activity object's result is sent back to the

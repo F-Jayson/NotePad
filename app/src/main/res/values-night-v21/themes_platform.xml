@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 21 及以上深色模式的 Material 父主题。night 限定符优先于版本限定符，
+     因此深色模式不会读到 values-v23、values-v27 中的浅色状态栏设置。 -->
+<resources>
+    <style name="Platform.NotePad" parent="android:Theme.Material.NoActionBar" />
+    <style name="Platform.Editor" parent="android:Theme.Material" />
+    <style name="Platform.Dialog" parent="android:Theme.Material.Dialog.NoActionBar" />
+    <style name="Platform.Alert" parent="android:Theme.Material.Dialog.Alert" />
+    <style name="Platform.ActionBar" parent="android:Widget.Material.ActionBar.Solid" />
+    <style name="Platform.PopupMenu" parent="android:Widget.Material.PopupMenu" />
+</resources>

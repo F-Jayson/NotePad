@@ -1,22 +1,235 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ListActivity 通过系统 ID 关联列表与空状态，根布局避开系统栏和操作栏。 -->
+<!-- 列表页布局：底层为全屏极光背景，上层垂直排列顶部栏与笔记列表（或空状态），右下角悬浮新建按钮。
+     ListActivity 仍通过系统 ID @android:id/list 与 @android:id/empty 关联列表和空状态。 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/list_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:background="@color/np_background"
+    android:focusableInTouchMode="true">
 
-    <ListView
-        android:id="@android:id/list"
+    <!-- 缓慢漂移的三团柔光，作为顶部栏和玻璃卡片背后的底色。 -->
+    <com.example.android.notepad.AuroraView
+        android:id="@+id/aurora"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 列表无数据时显示，提示内容随搜索词切换。 -->
-    <TextView
-        android:id="@android:id/empty"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:padding="16dp"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:visibility="gone" />
+        android:orientation="vertical">
+
+        <!-- 顶部栏：日期、标题、数量、深浅色切换、更多菜单与常驻搜索框。 -->
+        <LinearLayout
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/np_page_margin"
+            android:paddingEnd="@dimen/np_page_margin"
+            android:paddingTop="16dp"
+            android:paddingBottom="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/header_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:textAppearance="@style/NotePad.Text.Overline" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/header_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:singleLine="true"
+                            android:text="@string/title_notes_list"
+                            android:textAppearance="@style/NotePad.Text.Display" />
+
+                        <!-- 笔记数量徽标，搜索时改为结果数量。 -->
+                        <TextView
+                            android:id="@+id/header_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_count_badge"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:singleLine="true"
+                            android:textColor="@color/np_search_mark"
+                            android:textSize="@dimen/np_text_caption"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/theme_toggle"
+                    android:layout_width="@dimen/np_icon_button"
+                    android:layout_height="@dimen/np_icon_button"
+                    android:background="@drawable/bg_icon_button"
+                    android:padding="11dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_np_moon"
+                    android:tint="@color/np_text_primary" />
+
+                <ImageButton
+                    android:id="@+id/more_button"
+                    android:layout_width="@dimen/np_icon_button"
+                    android:layout_height="@dimen/np_icon_button"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_icon_button"
+                    android:contentDescription="@string/action_more"
+                    android:padding="11dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_np_more"
+                    android:tint="@color/np_text_primary" />
+            </LinearLayout>
+
+            <!-- 常驻搜索框：输入即按标题和正文筛选，容器跟随输入框的聚焦状态切换描边。 -->
+            <LinearLayout
+                android:id="@+id/search_box"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/np_search_height"
+                android:layout_marginTop="14dp"
+                android:addStatesFromChildren="true"
+                android:background="@drawable/bg_search"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="6dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_np_search"
+                    android:tint="@color/np_text_tertiary" />
+
+                <EditText
+                    android:id="@+id/search_input"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="@string/search_hint"
+                    android:imeOptions="actionSearch|flagNoExtractUi"
+                    android:inputType="text"
+                    android:singleLine="true"
+                    android:textColor="@color/np_text_primary"
+                    android:textColorHint="@color/np_text_tertiary"
+                    android:textSize="15sp" />
+
+                <ImageButton
+                    android:id="@+id/search_clear"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_icon_button"
+                    android:contentDescription="@string/search_clear"
+                    android:padding="9dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_np_close"
+                    android:tint="@color/np_text_secondary"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 列表与空状态共用顶部栏下方的剩余区域。 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <ListView
+                android:id="@android:id/list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:divider="@null"
+                android:dividerHeight="0dp"
+                android:listSelector="@android:color/transparent"
+                android:cacheColorHint="@android:color/transparent"
+                android:drawSelectorOnTop="false"
+                android:requiresFadingEdge="vertical"
+                android:fadingEdgeLength="14dp"
+                android:scrollbars="none"
+                android:paddingTop="4dp"
+                android:paddingBottom="108dp"
+                android:layoutAnimation="@anim/list_layout_enter" />
+
+            <!-- 空状态：插画、主提示与说明。插画与文字在代码中随“空笔记本／搜索无结果”切换。 -->
+            <LinearLayout
+                android:id="@android:id/empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="40dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="56dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/empty_art"
+                    android:layout_width="200dp"
+                    android:layout_height="170dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ill_empty_notes" />
+
+                <TextView
+                    android:id="@+id/empty_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:textAppearance="@style/NotePad.Text.CardTitle"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/empty_detail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="3dp"
+                    android:textAppearance="@style/NotePad.Text.Body" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- 新建按钮：渐变圆形，点击新建笔记。 -->
+    <ImageButton
+        android:id="@+id/fab_add"
+        android:layout_width="@dimen/np_fab_size"
+        android:layout_height="@dimen/np_fab_size"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/np_fab_margin"
+        android:layout_marginBottom="@dimen/np_fab_margin"
+        android:background="@drawable/bg_fab"
+        android:contentDescription="@string/menu_add"
+        android:elevation="6dp"
+        android:padding="17dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_np_add"
+        android:tint="@color/np_on_accent" />
 </FrameLayout>

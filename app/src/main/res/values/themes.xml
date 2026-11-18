@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 应用主题。颜色全部引用 colors.xml，深色模式由 values-night 中的同名颜色和父主题自动替换。
+     API 21 以上才有的属性在旧系统上会被忽略，不影响 API 19 运行。 -->
+<resources>
+
+    <!-- 列表页：无操作栏，内容延伸到状态栏下方，顶部栏与新建按钮由布局自行绘制。 -->
+    <style name="Theme.NotePad" parent="Platform.NotePad">
+        <item name="android:windowBackground">@color/np_background</item>
+        <item name="android:colorBackground">@color/np_background</item>
+        <item name="android:textColorPrimary">@color/np_text_primary</item>
+        <item name="android:textColorSecondary">@color/np_text_secondary</item>
+        <item name="android:textColorHint">@color/np_text_tertiary</item>
+        <item name="android:textColorHighlight">@color/np_highlight</item>
+        <item name="android:colorPrimary">@color/np_background</item>
+        <item name="android:colorPrimaryDark">@color/np_background</item>
+        <item name="android:colorAccent">@color/np_accent</item>
+        <item name="android:colorControlNormal">@color/np_text_secondary</item>
+        <item name="android:colorControlActivated">@color/np_accent</item>
+        <item name="android:colorControlHighlight">@color/np_ripple</item>
+        <item name="android:colorEdgeEffect">@color/np_accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:popupMenuStyle">@style/NotePad.PopupMenu</item>
+        <item name="android:alertDialogTheme">@style/Theme.NotePad.Alert</item>
+        <item name="android:windowAnimationStyle">@style/NotePad.ActivityAnimation</item>
+    </style>
+
+    <!-- 正文编辑器：保留系统操作栏承载保存、撤销、删除菜单，只把颜色与图标统一为应用风格。
+         正文字号、行距和纸张背景留给 T05。 -->
+    <style name="Theme.NotePad.Editor" parent="Platform.Editor">
+        <item name="android:windowBackground">@color/np_background</item>
+        <item name="android:colorBackground">@color/np_background</item>
+        <item name="android:textColorPrimary">@color/np_text_primary</item>
+        <item name="android:textColorSecondary">@color/np_text_secondary</item>
+        <item name="android:textColorHint">@color/np_text_tertiary</item>
+        <item name="android:textColorHighlight">@color/np_highlight</item>
+        <item name="android:colorPrimary">@color/np_background</item>
+        <item name="android:colorPrimaryDark">@color/np_background</item>
+        <item name="android:colorAccent">@color/np_accent</item>
+        <item name="android:colorControlNormal">@color/np_text_primary</item>
+        <item name="android:colorControlActivated">@color/np_accent</item>
+        <item name="android:colorControlHighlight">@color/np_ripple</item>
+        <item name="android:colorEdgeEffect">@color/np_accent</item>
+        <item name="android:statusBarColor">@color/np_background</item>
+        <item name="android:navigationBarColor">@color/np_background</item>
+        <item name="android:actionBarStyle">@style/NotePad.ActionBar</item>
+        <item name="android:popupMenuStyle">@style/NotePad.PopupMenu</item>
+        <item name="android:actionOverflowMenuStyle">@style/NotePad.PopupMenu</item>
+        <item name="android:alertDialogTheme">@style/Theme.NotePad.Alert</item>
+        <item name="android:windowAnimationStyle">@style/NotePad.ActivityAnimation</item>
+    </style>
+
+    <!-- 改标题窗口：保持对话框形态，换成圆角卡片、自绘标题并加入缩放淡入动画。 -->
+    <style name="Theme.NotePad.Dialog" parent="Platform.Dialog">
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowMinWidthMajor">88%</item>
+        <item name="android:windowMinWidthMinor">88%</item>
+        <item name="android:backgroundDimAmount">0.45</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:textColorPrimary">@color/np_text_primary</item>
+        <item name="android:textColorSecondary">@color/np_text_secondary</item>
+        <item name="android:textColorHint">@color/np_text_tertiary</item>
+        <item name="android:textColorHighlight">@color/np_highlight</item>
+        <item name="android:colorAccent">@color/np_accent</item>
+        <item name="android:colorControlActivated">@color/np_accent</item>
+        <item name="android:colorControlHighlight">@color/np_ripple</item>
+        <item name="android:windowAnimationStyle">@style/NotePad.DialogAnimation</item>
+    </style>
+
+    <!-- 长按菜单等系统列表对话框使用的圆角主题。 -->
+    <style name="Theme.NotePad.Alert" parent="Platform.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+        <item name="android:textColorPrimary">@color/np_text_primary</item>
+        <item name="android:textColorSecondary">@color/np_text_secondary</item>
+        <item name="android:textColorAlertDialogListItem">@color/np_text_primary</item>
+        <item name="android:colorAccent">@color/np_accent</item>
+        <item name="android:colorControlHighlight">@color/np_ripple</item>
+        <item name="android:windowAnimationStyle">@style/NotePad.DialogAnimation</item>
+    </style>
+
+    <!-- 编辑器操作栏：与页面同色、去掉阴影，形成平整的顶部区域。 -->
+    <style name="NotePad.ActionBar" parent="Platform.ActionBar">
+        <item name="android:background">@color/np_background</item>
+        <item name="android:backgroundStacked">@color/np_background</item>
+        <item name="android:backgroundSplit">@color/np_background</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:titleTextStyle">@style/NotePad.ActionBar.Title</item>
+    </style>
+
+    <style name="NotePad.ActionBar.Title" parent="android:TextAppearance.Medium">
+        <item name="android:textColor">@color/np_text_primary</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- “更多”弹出菜单的圆角背景。 -->
+    <style name="NotePad.PopupMenu" parent="Platform.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup</item>
+        <item name="android:popupElevation">12dp</item>
+        <item name="android:overlapAnchor">false</item>
+    </style>
+
+    <!-- 列表与编辑器之间的转场：新页面上浮淡入，旧页面轻微后退。 -->
+    <style name="NotePad.ActivityAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/page_open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/page_open_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/page_close_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/page_close_exit</item>
+    </style>
+
+    <style name="NotePad.DialogAnimation" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/dialog_exit</item>
+    </style>
+
+    <!-- 列表页文字样式 -->
+    <style name="NotePad.Text.Overline" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/np_text_overline</item>
+        <item name="android:textColor">@color/np_text_secondary</item>
+        <item name="android:letterSpacing">0.04</item>
+    </style>
+
+    <style name="NotePad.Text.Display" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/np_text_display</item>
+        <item name="android:textColor">@color/np_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="NotePad.Text.CardTitle" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/np_text_title</item>
+        <item name="android:textColor">@color/np_text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="NotePad.Text.Body" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/np_text_body</item>
+        <item name="android:textColor">@color/np_text_secondary</item>
+    </style>
+
+    <style name="NotePad.Text.Caption" parent="android:TextAppearance">
+        <item name="android:textSize">@dimen/np_text_caption</item>
+        <item name="android:textColor">@color/np_text_tertiary</item>
+    </style>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 浅色模式。 搜索无结果插画：便签上方的放大镜与问号。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp" android:height="170dp"
+    android:viewportWidth="200" android:viewportHeight="170">
+    <path android:fillColor="#3352B8F0" android:pathData="M100,90m-72,0a72,72 0 1,1 144,0a72,72 0 1,1 -144,0" />
+    <group android:rotation="-6" android:pivotX="100" android:pivotY="90">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M60,40 H114 A14,14 0 0 1 128,54 V126 A14,14 0 0 1 114,140 H60 A14,14 0 0 1 46,126 V54 A14,14 0 0 1 60,40 Z" />
+        <path android:fillColor="#FFDCEBE8" android:pathData="M63,60 H109 A3,3 0 0 1 112,63 V63 A3,3 0 0 1 109,66 H63 A3,3 0 0 1 60,63 V63 A3,3 0 0 1 63,60 Z" />
+        <path android:fillColor="#FFDCEBE8" android:pathData="M62.5,76 H101.5 A2.5,2.5 0 0 1 104,78.5 V78.5 A2.5,2.5 0 0 1 101.5,81 H62.5 A2.5,2.5 0 0 1 60,78.5 V78.5 A2.5,2.5 0 0 1 62.5,76 Z" />
+        <path android:fillColor="#FFDCEBE8" android:pathData="M62.5,91 H109.5 A2.5,2.5 0 0 1 112,93.5 V93.5 A2.5,2.5 0 0 1 109.5,96 H62.5 A2.5,2.5 0 0 1 60,93.5 V93.5 A2.5,2.5 0 0 1 62.5,91 Z" />
+        <path android:fillColor="#FFDCEBE8" android:pathData="M62.5,106 H89.5 A2.5,2.5 0 0 1 92,108.5 V108.5 A2.5,2.5 0 0 1 89.5,111 H62.5 A2.5,2.5 0 0 1 60,108.5 V108.5 A2.5,2.5 0 0 1 62.5,106 Z" />
+    </group>
+    <path android:fillColor="#664AA3F5" android:pathData="M124,82m-28,0a28,28 0 1,1 56,0a28,28 0 1,1 -56,0" />
+    <path android:strokeColor="#FF4AA3F5" android:strokeWidth="9" android:fillColor="#00000000"
+        android:pathData="M124,82m-28,0a28,28 0 1,1 56,0a28,28 0 1,1 -56,0" />
+    <path android:strokeColor="#FF2EC4A0" android:strokeWidth="12" android:strokeLineCap="round"
+        android:pathData="M145,104 L166,126" />
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="5" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M116,74 Q116,66 124,66 Q132,66 132,73 Q132,79 124,82 L124,87" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M124,96m-3.5,0a3.5,3.5 0 1,1 7,0a3.5,3.5 0 1,1 -7,0" />
+    <path android:fillColor="#FFF2BE3A" android:pathData="M40,40 Q40,48 48,48 Q40,48 40,56 Q40,48 32,48 Q40,48 40,40 Z" />
+    <path android:fillColor="#FF9A8CF5" android:pathData="M170,38 Q170,44 176,44 Q170,44 170,50 Q170,44 164,44 Q170,44 170,38 Z" />
+</vector>

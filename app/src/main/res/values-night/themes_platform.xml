@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 19-20 深色模式的系统父主题。 -->
+<resources>
+    <style name="Platform.NotePad" parent="android:Theme.Holo.NoActionBar" />
+    <style name="Platform.Editor" parent="android:Theme.Holo" />
+    <style name="Platform.Dialog" parent="android:Theme.Holo.Dialog.NoActionBar" />
+    <style name="Platform.Alert" parent="android:Theme.Holo.Dialog" />
+    <style name="Platform.ActionBar" parent="android:Widget.Holo.ActionBar.Solid" />
+    <style name="Platform.PopupMenu" parent="android:Widget.Holo.PopupMenu" />
+</resources>

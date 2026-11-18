@@ -14,38 +14,67 @@
      limitations under the License.
 -->
 
+<!-- T04 起界面文字统一改为中文，默认目录即中文，不随系统语言切换。 -->
 <resources>
-    <string name="app_name">NotePad</string>
-    <string name="live_folder_name">Notes</string>
+    <string name="app_name">记事本</string>
+    <string name="live_folder_name">笔记</string>
 
-    <string name="title_edit_title">Note title:</string>
-    <string name="title_create">New note</string>
-    <string name="title_edit">Edit: %1$s</string>
-    <string name="title_notes_list">Notes</string>
+    <string name="title_edit_title">修改标题</string>
+    <string name="title_create">新建笔记</string>
+    <string name="title_edit">%1$s</string>
+    <string name="title_notes_list">笔记</string>
     <!-- 历史笔记缺少最后修改时间时显示的占位符。 -->
-    <string name="note_modified_unknown">—</string>
+    <string name="note_modified_unknown">时间未知</string>
 
     <!-- 列表搜索入口、输入提示和两种空结果提示。 -->
-    <string name="menu_search">Search notes</string>
-    <string name="search_hint">Search titles or notes</string>
-    <string name="search_no_results">No matching notes</string>
-    <string name="notes_empty">No notes yet</string>
+    <string name="menu_search">搜索笔记</string>
+    <string name="search_hint">搜索标题或正文</string>
+    <string name="search_no_results">没有找到相关笔记</string>
+    <string name="search_no_results_detail">没有标题或正文包含“%1$s”的笔记，换个关键词试试</string>
+    <string name="notes_empty">还没有笔记</string>
+    <string name="notes_empty_detail">点按右下角的 ＋，写下第一个想法</string>
+    <string name="search_clear">清除搜索</string>
 
-    <string name="menu_add">New note</string>
-    <string name="menu_save">Save</string>
-    <string name="menu_delete">Delete</string>
-    <string name="menu_open">Open</string>
-    <string name="menu_revert">Revert changes</string>
-    <string name="menu_copy">Copy</string>
-    <string name="menu_paste">Paste</string>
+    <!-- 列表顶部栏：日期、标题、数量与按钮说明。 -->
+    <string name="header_date">%1$d月%2$d日 · %3$s</string>
+    <string-array name="weekdays">
+        <item>星期日</item>
+        <item>星期一</item>
+        <item>星期二</item>
+        <item>星期三</item>
+        <item>星期四</item>
+        <item>星期五</item>
+        <item>星期六</item>
+    </string-array>
+    <string name="header_count">%1$d 条</string>
+    <string name="header_count_search">找到 %1$d 条</string>
+    <string name="action_theme_dark">切换到深色模式</string>
+    <string name="action_theme_light">切换到浅色模式</string>
+    <string name="action_more">更多操作</string>
+    <string name="menu_follow_system">外观跟随系统</string>
 
-    <string name="button_ok">OK</string>
-    <string name="text_title">Title:</string>
+    <!-- 列表中的修改时间，今天和昨天用相对说法，其余显示完整日期，均带时分。 -->
+    <string name="time_today">今天 %1$s</string>
+    <string name="time_yesterday">昨天 %1$s</string>
+    <string name="time_this_year">%1$d月%2$d日 %3$s</string>
+    <string name="time_full">%1$d年%2$d月%3$d日 %4$s</string>
 
-    <string name="resolve_edit">Edit note</string>
-    <string name="resolve_title">Edit title</string>
+    <string name="menu_add">新建笔记</string>
+    <string name="menu_save">保存</string>
+    <string name="menu_delete">删除</string>
+    <string name="menu_open">打开</string>
+    <string name="menu_revert">撤销修改</string>
+    <string name="menu_copy">复制</string>
+    <string name="menu_paste">粘贴为新笔记</string>
 
-    <string name="error_title">Error</string>
-    <string name="error_message">Error loading note</string>
-    <string name="nothing_to_save">There is nothing to save</string>
+    <string name="button_ok">完成</string>
+    <string name="text_title">标题</string>
+    <string name="title_editor_hint">给这条笔记起个名字</string>
+
+    <string name="resolve_edit">编辑笔记</string>
+    <string name="resolve_title">修改标题</string>
+
+    <string name="error_title">出错了</string>
+    <string name="error_message">无法载入这条笔记</string>
+    <string name="nothing_to_save">没有可保存的内容</string>
 </resources>

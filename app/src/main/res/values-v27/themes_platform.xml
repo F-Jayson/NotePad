@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 27 及以上浅色模式：状态栏和导航栏图标都使用深色。 -->
+<resources>
+    <style name="Platform.NotePad" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+    <style name="Platform.Editor" parent="android:Theme.Material.Light">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+    <style name="Platform.Dialog" parent="android:Theme.Material.Light.Dialog.NoActionBar" />
+    <style name="Platform.Alert" parent="android:Theme.Material.Light.Dialog.Alert" />
+    <style name="Platform.ActionBar" parent="android:Widget.Material.Light.ActionBar.Solid" />
+    <style name="Platform.PopupMenu" parent="android:Widget.Material.Light.PopupMenu" />
+</resources>

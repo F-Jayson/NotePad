@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 21 以上的卡片背景：水波纹限制在不透明的圆角遮罩内，避免深色模式下水波纹随卡片透明而消失。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/np_ripple">
+    <item android:drawable="@drawable/bg_card_shape" />
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/np_card_radius" />
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+</ripple>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 浅色模式配色：以薄荷绿和天空蓝为主色，背景偏冷白，卡片为半透明“玻璃”。
+     深色模式在 values-night/colors.xml 中使用同名颜色覆盖，布局与图形只引用这些名字。 -->
+<resources>
+    <!-- 页面底色与极光背景的三团柔光 -->
+    <color name="np_background">#FFF3F8F7</color>
+    <color name="np_aurora_1">#8CA8EBD6</color>
+    <color name="np_aurora_2">#80A6D8F5</color>
+    <color name="np_aurora_3">#66D9CCFA</color>
+
+    <!-- 文字层级：标题、正文摘要、时间与提示 -->
+    <color name="np_text_primary">#FF16302C</color>
+    <color name="np_text_secondary">#FF56706B</color>
+    <color name="np_text_tertiary">#FF8EA19D</color>
+
+    <!-- 强调色及其渐变终点，用于新建按钮、搜索聚焦描边和关键字高亮 -->
+    <color name="np_accent">#FF14B89C</color>
+    <color name="np_accent_end">#FF3D9CF0</color>
+    <color name="np_accent_soft">#2614B89C</color>
+    <color name="np_on_accent">#FFFFFFFF</color>
+    <color name="np_highlight">#4D14B89C</color>
+    <color name="np_search_mark">#FF0E8F79</color>
+
+    <!-- 玻璃材质：填充、按下态、描边与顶部高光 -->
+    <color name="np_glass">#D6FFFFFF</color>
+    <color name="np_glass_pressed">#F0FFFFFF</color>
+    <color name="np_glass_stroke">#22164E46</color>
+    <color name="np_glass_sheen">#B3FFFFFF</color>
+    <color name="np_glass_sheen_end">#00FFFFFF</color>
+    <color name="np_ripple">#180B3D36</color>
+    <color name="np_field">#D9FFFFFF</color>
+
+    <!-- 顶部栏在列表滚动后出现的遮罩与分隔线 -->
+    <color name="np_header_scrim_top">#F5F3F8F7</color>
+    <color name="np_header_scrim_bottom">#D9F3F8F7</color>
+    <color name="np_hairline">#1A16302C</color>
+
+    <!-- 弹窗、菜单的实色表面与时间胶囊底色 -->
+    <color name="np_surface">#FFFDFEFE</color>
+    <color name="np_chip">#0F16302C</color>
+
+    <!-- 编辑器横线颜色，T05 会继续调整编辑器排版 -->
+    <color name="np_editor_line">#2416302C</color>
+
+    <!-- 低版本系统栏图标无法变深时使用的半透明遮罩 -->
+    <color name="np_bar_scrim">#33000000</color>
+
+    <!-- 卡片的五种点缀色，按笔记 ID 轮换 -->
+    <color name="np_tag_mint">#FF2EC4A0</color>
+    <color name="np_tag_sky">#FF4AA3F5</color>
+    <color name="np_tag_lavender">#FF9A8CF5</color>
+    <color name="np_tag_peach">#FFFF9C78</color>
+    <color name="np_tag_lemon">#FFF2BE3A</color>
+    <array name="np_tags">
+        <item>@color/np_tag_mint</item>
+        <item>@color/np_tag_sky</item>
+        <item>@color/np_tag_lavender</item>
+        <item>@color/np_tag_peach</item>
+        <item>@color/np_tag_lemon</item>
+    </array>
+</resources>

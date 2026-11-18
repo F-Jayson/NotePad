@@ -18,6 +18,7 @@ package com.example.android.notepad;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -57,6 +58,13 @@ public class TitleEditor extends Activity {
 
     // A URI object for the note whose title is being edited.
     private Uri mUri;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(newBase);
+        // 对话框与列表页共用同一套深浅色选择。
+        ThemeHelper.applyNightMode(this, newBase);
+    }
 
     /**
      * This method is called by Android when the Activity is first started. From the incoming
@@ -114,6 +122,8 @@ public class TitleEditor extends Activity {
 
             // Displays the current title text in the EditText object.
             mText.setText(mCursor.getString(COLUMN_INDEX_TITLE));
+            // 光标移到末尾，打开即可继续输入或删改。
+            mText.setSelection(mText.getText().length());
         }
     }
 

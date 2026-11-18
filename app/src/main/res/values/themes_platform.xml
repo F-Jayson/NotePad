@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 19-20 浅色模式的系统父主题。同名样式在 night、v21 等目录中替换父主题，
+     themes.xml 只需继承这些名字即可在不同系统版本和深浅模式之间切换。 -->
+<resources>
+    <style name="Platform.NotePad" parent="android:Theme.Holo.Light.NoActionBar" />
+    <style name="Platform.Editor" parent="android:Theme.Holo.Light" />
+    <style name="Platform.Dialog" parent="android:Theme.Holo.Light.Dialog.NoActionBar" />
+    <style name="Platform.Alert" parent="android:Theme.Holo.Light.Dialog" />
+    <style name="Platform.ActionBar" parent="android:Widget.Holo.Light.ActionBar.Solid" />
+    <style name="Platform.PopupMenu" parent="android:Widget.Holo.Light.PopupMenu" />
+</resources>

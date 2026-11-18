@@ -14,30 +14,61 @@
      limitations under the License.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
-  	android:layout_width="wrap_content" 
+<!-- 改标题对话框：保留 title 输入框与 ok 按钮的 ID 及点击方法，换为自绘标题、圆角输入框和渐变按钮。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingLeft="6dip"
-    android:paddingRight="6dip"
-    android:paddingBottom="3dip">
-   					  
-    <EditText android:id="@+id/title" 
-        android:maxLines="1" 
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="15dp"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="20dp">
+
+    <TextView
         android:layout_width="wrap_content"
-      	android:ems="25"
-        android:layout_height="wrap_content" 
-        android:autoText="true"
-        android:capitalize="sentences"
-        android:scrollHorizontally="true" />
-   		
+        android:layout_height="wrap_content"
+        android:text="@string/title_edit_title"
+        android:textColor="@color/np_text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/title_editor_hint"
+        android:textAppearance="@style/NotePad.Text.Body" />
+
+    <EditText android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_field"
+        android:hint="@string/text_title"
+        android:inputType="textCapSentences|textAutoCorrect"
+        android:maxLines="1"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
+        android:textColor="@color/np_text_primary"
+        android:textColorHint="@color/np_text_tertiary"
+        android:textSize="16sp" />
+
     <Button android:id="@+id/ok"
-        android:layout_width="wrap_content" 
-        android:layout_height="wrap_content" 
-        android:layout_gravity="right"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_gravity="end"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_button_accent"
+        android:minWidth="96dp"
+        android:onClick="onClickOk"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:stateListAnimator="@null"
         android:text="@string/button_ok"
-        android:onClick="onClickOk" />
-   		
+        android:textColor="@color/np_on_accent"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
 </LinearLayout>

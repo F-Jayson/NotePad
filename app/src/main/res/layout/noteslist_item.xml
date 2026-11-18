@@ -14,31 +14,84 @@
      limitations under the License.
 -->
 
-<!-- 列表项保留原来的最小高度，并为标题和时间两行留出空间。 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 笔记卡片：外层留出卡片间距，内层玻璃卡片通过 duplicateParentState 响应整行的按下状态。
+     标题仍使用 android.R.id.text1，适配器的列与控件映射保持不变。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="?android:attr/listPreferredItemHeight"
-    android:gravity="center_vertical"
-    android:orientation="vertical"
-    android:paddingStart="5dp"
-    android:paddingTop="8dp"
-    android:paddingEnd="5dp"
-    android:paddingBottom="8dp">
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="@dimen/np_card_gap"
+    android:paddingBottom="@dimen/np_card_gap">
 
-    <!-- 标题保留原有控件 ID，过长时在行尾省略。 -->
-    <TextView
-        android:id="@android:id/text1"
+    <LinearLayout
+        android:id="@+id/note_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:background="@drawable/bg_card"
+        android:duplicateParentState="true"
+        android:minHeight="?android:attr/listPreferredItemHeight"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/np_card_padding_h"
+        android:paddingEnd="@dimen/np_card_padding_h"
+        android:paddingTop="@dimen/np_card_padding_v"
+        android:paddingBottom="14dp"
+        android:stateListAnimator="@animator/card_press">
 
-    <!-- 第二行用较小字号显示最后修改时间。 -->
-    <TextView
-        android:id="@+id/note_modified"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-</LinearLayout>
+        <!-- 标题最多两行，过长时在末尾省略，时间独占下一行，大字号下也不会被挤掉。 -->
+        <TextView
+            android:id="@android:id/text1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lineSpacingExtra="2dp"
+            android:maxLines="2"
+            android:textAppearance="@style/NotePad.Text.CardTitle" />
+
+        <!-- 正文摘要：去掉与标题重复的开头，搜索时从命中位置附近截取。 -->
+        <TextView
+            android:id="@+id/note_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:lineSpacingExtra="3dp"
+            android:maxLines="2"
+            android:textAppearance="@style/NotePad.Text.Body" />
+
+        <!-- 修改时间胶囊：点缀圆点 + 时钟图标 + 时间。 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_chip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <View
+                android:id="@+id/note_accent"
+                android:layout_width="7dp"
+                android:layout_height="7dp"
+                android:background="@drawable/bg_dot" />
+
+            <ImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="7dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_np_clock"
+                android:tint="@color/np_text_tertiary" />
+
+            <TextView
+                android:id="@+id/note_modified"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:textAppearance="@style/NotePad.Text.Caption" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

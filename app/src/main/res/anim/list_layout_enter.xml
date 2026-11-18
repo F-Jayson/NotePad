@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 列表首次载入时，卡片按顺序错峰入场。 -->
+<layoutAnimation xmlns:android="http://schemas.android.com/apk/res/android"
+    android:animation="@anim/list_item_enter"
+    android:animationOrder="normal"
+    android:delay="12%" />
