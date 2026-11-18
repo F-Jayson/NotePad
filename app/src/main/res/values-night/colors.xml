@@ -33,11 +33,15 @@
     <color name="np_chip">#14FFFFFF</color>
 
     <!-- 深色编辑器中的白纸以蓝灰呈现，暖纸使用深棕和暖色墨水。 -->
+    <color name="np_editor_background">@color/np_background</color>
+    <color name="np_editor_ink">@color/np_text_primary</color>
     <color name="np_paper_white">#FF192B37</color>
     <color name="np_paper_warm">#FF352E2A</color>
     <color name="np_paper_warm_ink">#FFF1E5D5</color>
     <color name="np_paper_warm_line">#FF52453C</color>
     <color name="np_editor_line">#29FFFFFF</color>
+    <color name="np_paper_white_tab">#FF73A7A9</color>
+    <color name="np_paper_warm_tab">#FFC39B6A</color>
 
     <color name="np_bar_scrim">#00000000</color>
 

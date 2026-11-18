@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 编辑页使用固定品牌名称，笔记标题在纸面内显示。 -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:ellipsize="end"
+    android:fontFamily="serif"
+    android:gravity="center_vertical"
+    android:maxLines="1"
+    android:text="@string/editor_brand"
+    android:textColor="@color/np_editor_ink"
+    android:textSize="22sp"
+    android:textStyle="bold" />

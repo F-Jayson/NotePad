@@ -27,21 +27,21 @@
 
     <!-- 正文编辑器保留系统操作栏，纸张颜色由编辑器单独应用。 -->
     <style name="Theme.NotePad.Editor" parent="Platform.Editor">
-        <item name="android:windowBackground">@color/np_background</item>
-        <item name="android:colorBackground">@color/np_background</item>
+        <item name="android:windowBackground">@color/np_editor_background</item>
+        <item name="android:colorBackground">@color/np_editor_background</item>
         <item name="android:textColorPrimary">@color/np_text_primary</item>
         <item name="android:textColorSecondary">@color/np_text_secondary</item>
         <item name="android:textColorHint">@color/np_text_tertiary</item>
         <item name="android:textColorHighlight">@color/np_highlight</item>
-        <item name="android:colorPrimary">@color/np_background</item>
-        <item name="android:colorPrimaryDark">@color/np_background</item>
+        <item name="android:colorPrimary">@color/np_editor_background</item>
+        <item name="android:colorPrimaryDark">@color/np_editor_background</item>
         <item name="android:colorAccent">@color/np_accent</item>
         <item name="android:colorControlNormal">@color/np_text_primary</item>
         <item name="android:colorControlActivated">@color/np_accent</item>
         <item name="android:colorControlHighlight">@color/np_ripple</item>
         <item name="android:colorEdgeEffect">@color/np_accent</item>
-        <item name="android:statusBarColor">@color/np_background</item>
-        <item name="android:navigationBarColor">@color/np_background</item>
+        <item name="android:statusBarColor">@color/np_editor_background</item>
+        <item name="android:navigationBarColor">@color/np_editor_background</item>
         <item name="android:actionBarStyle">@style/NotePad.ActionBar</item>
         <item name="android:popupMenuStyle">@style/NotePad.PopupMenu</item>
         <item name="android:actionOverflowMenuStyle">@style/NotePad.PopupMenu</item>
@@ -80,9 +80,9 @@
 
     <!-- 编辑器操作栏：与页面同色、去掉阴影，形成平整的顶部区域。 -->
     <style name="NotePad.ActionBar" parent="Platform.ActionBar">
-        <item name="android:background">@color/np_background</item>
-        <item name="android:backgroundStacked">@color/np_background</item>
-        <item name="android:backgroundSplit">@color/np_background</item>
+        <item name="android:background">@color/np_editor_background</item>
+        <item name="android:backgroundStacked">@color/np_editor_background</item>
+        <item name="android:backgroundSplit">@color/np_editor_background</item>
         <item name="android:elevation">0dp</item>
         <item name="android:titleTextStyle">@style/NotePad.ActionBar.Title</item>
     </style>

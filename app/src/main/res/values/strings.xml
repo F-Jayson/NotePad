@@ -61,7 +61,8 @@
 
     <string name="menu_add">新建笔记</string>
     <string name="menu_save">保存</string>
-    <!-- 编辑器纸张单选菜单。 -->
+    <!-- 编辑器顶栏使用固定品牌名称，纸张菜单保留中文。 -->
+    <string name="editor_brand" translatable="false">NotePad</string>
     <string name="menu_paper">纸张</string>
     <string name="paper_white">白纸</string>
     <string name="paper_warm">暖纸</string>

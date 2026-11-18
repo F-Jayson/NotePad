@@ -114,7 +114,8 @@ final class ThemeHelper {
         boolean light = !isNight(activity);
         // API 23 前状态栏图标只能是白色，API 26 前导航栏图标只能是白色，浅色模式下需加半透明遮罩。
         int scrim = activity.getResources().getColor(R.color.np_bar_scrim);
-        int background = activity.getResources().getColor(R.color.np_background);
+        // 编辑器系统栏衔接纸面以外的底色，列表仍使用透明系统栏。
+        int background = activity.getResources().getColor(R.color.np_editor_background);
         int statusColor;
         int navColor;
         if (drawBehind) {

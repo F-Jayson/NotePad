@@ -39,12 +39,16 @@
     <color name="np_surface">#FFFDFEFE</color>
     <color name="np_chip">#0F16302C</color>
 
-    <!-- 浅色编辑器中的白纸、暖纸及横线。 -->
+    <!-- 浅色编辑器采用雾蓝底色，暖纸留一点米色便于辨别。 -->
+    <color name="np_editor_background">#FFF2F7F8</color>
+    <color name="np_editor_ink">#FF182F3C</color>
     <color name="np_paper_white">#FFFFFFFF</color>
-    <color name="np_paper_warm">#FFFFF4DE</color>
+    <color name="np_paper_warm">#FFFFFAF1</color>
     <color name="np_paper_warm_ink">#FF45392E</color>
-    <color name="np_paper_warm_line">#FFE5D5B8</color>
-    <color name="np_editor_line">#2416302C</color>
+    <color name="np_paper_warm_line">#FFE9DDCB</color>
+    <color name="np_editor_line">#FFD9E4E7</color>
+    <color name="np_paper_white_tab">#FF90C8C2</color>
+    <color name="np_paper_warm_tab">#FFD8AE6B</color>
 
     <!-- 低版本系统栏图标无法变深时使用的半透明遮罩 -->
     <color name="np_bar_scrim">#33000000</color>

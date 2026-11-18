@@ -18,6 +18,7 @@ package com.example.android.notepad;
 
 import static com.example.android.notepad.R.*;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -30,15 +31,19 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Layout;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * This Activity handles "editing" a note, where editing is responding to
@@ -245,6 +250,12 @@ public class NoteEditor extends Activity {
 
         // Gets a handle to the EditText in the the layout.
         mText = findViewById(R.id.note);
+        // 顶栏保留返回和菜单，笔记标题由纸面显示。
+        ActionBar bar = getActionBar();
+        if (bar != null) {
+            bar.setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_CUSTOM);
+            bar.setCustomView(R.layout.editor_action_bar_title);
+        }
 
         /*
          * If this Activity had stopped previously, its state was written the ORIGINAL_CONTENT
@@ -292,9 +303,9 @@ public class NoteEditor extends Activity {
                 // Set the title of the Activity to include the note title
                 int colTitleIndex = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE);
                 String title = mCursor.getString(colTitleIndex);
-                Resources res = getResources();
-                String text = String.format(res.getString(R.string.title_edit), title);
-                setTitle(text);
+                // 早期笔记可能没有标题，纸面沿用系统的未命名提示。
+                setTitle(TextUtils.isEmpty(title) ? getText(android.R.string.untitled)
+                        : getString(R.string.title_edit, title));
             // Sets the title to "create" for inserts
             } else if (mState == STATE_INSERT) {
                 setTitle(getText(R.string.title_create));
@@ -325,6 +336,9 @@ public class NoteEditor extends Activity {
             setTitle(getText(R.string.error_title));
             mText.setText(getText(R.string.error_message));
         }
+        // 与 Activity 标题同步，新建和改名后也使用同一个纸面标题。
+        TextView pageTitle = findViewById(R.id.editor_title);
+        pageTitle.setText(getTitle());
     }
 
     /**
@@ -424,12 +438,20 @@ public class NoteEditor extends Activity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    // 在同一个输入框上更新纸面、墨色和横线，正文保存仍由 Activity 原有流程处理。
+    // 更新纸面、墨色与书签，输入框继续保留原来的选区和滚动状态。
     private void applyPaper(boolean warm) {
         Resources res = getResources();
-        mText.setBackgroundColor(res.getColor(warm ? R.color.np_paper_warm : R.color.np_paper_white));
-        mText.setTextColor(res.getColor(warm ? R.color.np_paper_warm_ink : R.color.np_text_primary));
-        mText.setRuleColor(res.getColor(warm ? R.color.np_paper_warm_line : R.color.np_editor_line));
+        int ink = res.getColor(warm ? R.color.np_paper_warm_ink : R.color.np_editor_ink);
+        int lines = res.getColor(warm ? R.color.np_paper_warm_line : R.color.np_editor_line);
+        GradientDrawable page = (GradientDrawable) findViewById(R.id.editor_page).getBackground().mutate();
+        page.setColor(res.getColor(warm ? R.color.np_paper_warm : R.color.np_paper_white));
+        page.setStroke(Math.round(res.getDisplayMetrics().density), lines);
+        TextView title = findViewById(R.id.editor_title);
+        title.setTextColor(ink);
+        ImageView bookmark = findViewById(R.id.editor_bookmark);
+        bookmark.setColorFilter(res.getColor(warm ? R.color.np_paper_warm_tab : R.color.np_paper_white_tab));
+        mText.setTextColor(ink);
+        mText.setRuleColor(lines);
     }
 
     @Override
@@ -469,8 +491,8 @@ public class NoteEditor extends Activity {
             item.setChecked(true);
             return true;
         }
-        if(id== R.id.menu_save) {
-            // 保存和返回都由 onPause 写入，避免保存按钮触发两次更新。
+        if (id == R.id.menu_save || id == android.R.id.home) {
+            // 顶栏返回和保存均走 onPause 的原有写入流程。
             finish();
         } else if (id == R.id.menu_delete) {
             deleteNote();

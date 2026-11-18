@@ -10,6 +10,7 @@ import android.test.ActivityInstrumentationTestCase2;
 import android.text.Editable;
 import android.view.Window;
 import android.widget.EditText;
+import android.widget.TextView;
 
 /** 用专属样本验证换纸不丢草稿、选区、滚动位置，也不提前写库。 */
 public class NoteEditorPaperTest extends ActivityInstrumentationTestCase2<NoteEditor> {
@@ -29,9 +30,10 @@ public class NoteEditorPaperTest extends ActivityInstrumentationTestCase2<NoteEd
             text.append("第").append(i).append("段：记录今天的观察。\n");
         }
         String saved = text.toString();
+        String title = "T05 选区与滚动测试";
         long originalTime = 1730000000000L;
         ContentValues values = new ContentValues();
-        values.put(NotePad.Notes.COLUMN_NAME_TITLE, "T05 选区与滚动测试");
+        values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
         values.put(NotePad.Notes.COLUMN_NAME_NOTE, saved);
         values.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, originalTime);
         note = context.getContentResolver().insert(NotePad.Notes.CONTENT_URI, values);
@@ -42,6 +44,9 @@ public class NoteEditorPaperTest extends ActivityInstrumentationTestCase2<NoteEd
         int start = saved.indexOf("第100段");
         // 在中后部选择一段文字，并保留一处尚未保存的修改。
         runTestOnUiThread(() -> {
+            // 固定的品牌栏下方应显示从笔记读出的标题。
+            TextView paperTitle = activity.findViewById(R.id.editor_title);
+            assertEquals(title, paperTitle.getText().toString());
             editor.requestFocus();
             editor.append("未保存草稿");
             editor.setSelection(start, start + 5);

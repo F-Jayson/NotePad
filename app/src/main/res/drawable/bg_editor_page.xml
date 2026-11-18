@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 换纸时为当前编辑器更新纸面的底色与细描边。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/np_paper_white" />
+    <corners android:radius="18dp" />
+    <stroke android:width="1dp" android:color="@color/np_editor_line" />
+</shape>

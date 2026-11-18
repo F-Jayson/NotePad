@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 保留深浅色操作图标，纸张通过独立的单选菜单切换。 -->
+<!-- 纸张和保存在顶栏，撤销和删除从更多菜单进入。 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_save"
-          android:icon="@drawable/ic_np_check"
-          android:alphabeticShortcut='s'
-          android:title="@string/menu_save"
-          android:showAsAction="ifRoom" />
     <item android:id="@+id/menu_paper"
           android:title="@string/menu_paper"
           android:showAsAction="always">
@@ -16,12 +11,17 @@
             </group>
         </menu>
     </item>
+    <item android:id="@+id/menu_save"
+          android:icon="@drawable/ic_np_check"
+          android:alphabeticShortcut='s'
+          android:title="@string/menu_save"
+          android:showAsAction="always" />
     <item android:id="@+id/menu_revert"
           android:icon="@drawable/ic_np_undo"
           android:title="@string/menu_revert"
-          android:showAsAction="ifRoom" />
+          android:showAsAction="never" />
     <item android:id="@+id/menu_delete"
           android:icon="@drawable/ic_np_delete"
           android:title="@string/menu_delete"
-          android:showAsAction="ifRoom" />
+          android:showAsAction="never" />
 </menu>
