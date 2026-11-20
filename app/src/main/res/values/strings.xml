@@ -47,6 +47,39 @@
     <string name="export_failed">导出笔记失败</string>
     <string name="export_no_picker">未找到可用的文件选择器</string>
 
+    <!-- WebDAV 云备份入口、配置表单、确认框及传输结果提示。 -->
+    <string name="menu_cloud_backup">云备份与恢复</string>
+    <string name="title_cloud_backup">云备份与恢复</string>
+    <string name="cloud_backup_intro">使用 HTTPS WebDAV 将全部笔记备份到指定目录下的 notepad-backup.json，再次备份将替换远端旧副本。</string>
+    <string name="cloud_backup_url_label">WebDAV 目录地址（HTTPS）</string>
+    <string name="cloud_backup_url_hint">例如：https://dav.jianguoyun.com/dav/NotePad/</string>
+    <string name="cloud_backup_username_label">账号</string>
+    <string name="cloud_backup_username_hint">输入云盘登录账号或邮箱</string>
+    <string name="cloud_backup_password_label">专用应用密码</string>
+    <string name="cloud_backup_password_hint">输入第三方应用专用密码</string>
+    <string name="cloud_backup_password_note">目录与账号会保存在本机；应用密码仅用于本次会话，不会写入本地文件。</string>
+    <string name="cloud_backup_action">备份到云端</string>
+    <string name="cloud_backup_status_idle">填写配置后点击“备份到云端”手动上传整本快照。</string>
+    <string name="cloud_backup_status_preparing">正在读取全部笔记…</string>
+    <string name="cloud_backup_status_in_progress">云端传输进行中，请稍候…</string>
+    <string name="cloud_backup_status_uploading">正在上传 %1$d 条笔记到云端…</string>
+    <string name="cloud_backup_status_cancelled">已取消云备份</string>
+    <string name="cloud_backup_confirm_title">确认云备份</string>
+    <string name="cloud_backup_confirm_message">本次将备份全部 %1$d 条笔记，并替换远端目录下的 %2$s。是否继续？</string>
+    <string name="cloud_backup_confirm_empty">当前共有 0 条笔记（空笔记本）。继续备份将上传空快照并替换远端目录下的 %1$s。是否继续？</string>
+    <string name="cloud_backup_confirm_positive">开始备份</string>
+    <string name="cloud_backup_confirm_cancel">取消</string>
+    <string name="cloud_backup_success_created">云备份成功：已上传 %1$d 条笔记（首次创建 %2$s）</string>
+    <string name="cloud_backup_success_updated">云备份成功：已上传 %1$d 条笔记（已更新 %2$s）</string>
+    <string name="cloud_backup_error_invalid_url">备份失败：请填写有效的 HTTPS 目录地址</string>
+    <string name="cloud_backup_error_empty_username">备份失败：请填写云盘账号</string>
+    <string name="cloud_backup_error_empty_password">备份失败：请填写专用应用密码</string>
+    <string name="cloud_backup_error_read_notes">备份失败：无法读取本地笔记数据</string>
+    <string name="cloud_backup_error_auth">备份失败：账号或应用密码错误，或无权限访问该目录</string>
+    <string name="cloud_backup_error_directory">备份失败：远端目录不存在或不可用，请确认目录已创建</string>
+    <string name="cloud_backup_error_network">备份失败：网络连接失败或请求超时，请检查网络后重试</string>
+    <string name="cloud_backup_error_server">备份失败：服务器返回异常（HTTP %1$d）</string>
+
     <string name="button_ok">OK</string>
     <string name="text_title">Title:</string>
 

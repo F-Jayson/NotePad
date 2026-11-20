@@ -18,4 +18,8 @@
           android:icon="@drawable/ic_menu_compose"
           android:title="@string/menu_paste"
           android:alphabeticShortcut='p' />
+    <!-- 打开整本笔记的 WebDAV 云备份与恢复界面。 -->
+    <item android:id="@+id/menu_cloud_backup"
+          android:title="@string/menu_cloud_backup"
+          android:showAsAction="never" />
 </menu>

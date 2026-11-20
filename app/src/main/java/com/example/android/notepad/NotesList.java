@@ -404,6 +404,10 @@ public class NotesList extends ListActivity {
              */
             startActivity(new Intent(Intent.ACTION_PASTE, getIntent().getData()));
             return true;
+        } else if (item.getItemId() == R.id.menu_cloud_backup) {
+            // 打开整本笔记的 WebDAV 云备份与恢复界面；备份查询独立于当前列表搜索条件。
+            startActivity(new Intent(this, CloudBackupActivity.class));
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
