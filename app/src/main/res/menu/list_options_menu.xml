@@ -17,4 +17,8 @@
     <item android:id="@+id/menu_follow_system"
           android:title="@string/menu_follow_system"
           android:checkable="true" />
+    <!-- 打开整本笔记的 WebDAV 云备份与恢复界面。 -->
+    <item android:id="@+id/menu_cloud_backup"
+          android:title="@string/menu_cloud_backup"
+          android:showAsAction="never" />
 </menu>

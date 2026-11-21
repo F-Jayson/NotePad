@@ -17,6 +17,9 @@
 <!-- The namespace and application ID are configured in app/build.gradle. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- WebDAV 云备份与恢复所需的 HTTPS 网络访问权限。 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application android:icon="@drawable/app_notes"
         android:label="@string/app_name"
         android:theme="@style/Theme.NotePad"
@@ -112,6 +115,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!-- 整本笔记 WebDAV 云备份与恢复配置页面，仅由应用内列表菜单打开；沿用带操作栏的主题以适配深浅模式。 -->
+        <activity android:name="CloudBackupActivity"
+            android:exported="false"
+            android:label="@string/title_cloud_backup"
+            android:theme="@style/Theme.NotePad.Editor" />
 
     </application>
 
