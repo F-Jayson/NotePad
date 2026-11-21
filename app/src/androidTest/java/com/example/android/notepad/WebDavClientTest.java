@@ -175,6 +175,91 @@ public class WebDavClientTest extends AndroidTestCase {
         prefs.edit().clear().commit();
     }
 
+    // 验证 HTTPS GET 下载成功时的请求方法、头部、禁用重定向、超时、载荷完整与资源释放。
+    public void testDownloadBackupSuccessAndHeaders() throws Exception {
+        NoteBackupFormat.NoteRecord sampleNote = new NoteBackupFormat.NoteRecord(
+                "远端恢复样例",
+                "第一行：来自 WebDAV 的正文\n第二行：含中文与 123",
+                1795251000100L,
+                1795251000200L);
+        byte[] serverBytes = NoteBackupFormat.encodeToUtf8Bytes(Collections.singletonList(sampleNote));
+        URL targetUrl = WebDavClient.buildBackupFileUrl("https://dav.example.com/dav/NotePad/");
+
+        FakeHttpURLConnection conn = new FakeHttpURLConnection(targetUrl, 200, null, serverBytes);
+        byte[] downloaded = WebDavClient.downloadFromUrl(
+                targetUrl, "demo@example.com", "demo-app-secret",
+                WebDavClient.DEFAULT_CONNECT_TIMEOUT_MS,
+                WebDavClient.DEFAULT_READ_TIMEOUT_MS,
+                url -> conn);
+
+        assertEquals("GET", conn.getRequestMethod());
+        assertFalse(conn.getInstanceFollowRedirects());
+        assertEquals(WebDavClient.DEFAULT_CONNECT_TIMEOUT_MS, conn.getConnectTimeout());
+        assertEquals(WebDavClient.DEFAULT_READ_TIMEOUT_MS, conn.getReadTimeout());
+        assertEquals(
+                WebDavClient.buildBasicAuthHeader("demo@example.com", "demo-app-secret"),
+                conn.capturedHeaders.get("Authorization"));
+        assertEquals("application/json", conn.capturedHeaders.get("Accept"));
+        assertTrue(conn.disconnected);
+        assertTrue(conn.responseStreamClosed);
+
+        NoteBackupFormat.BackupSnapshot decoded = NoteBackupFormat.decodeFromUtf8Bytes(downloaded);
+        assertEquals(1, decoded.notes.size());
+        assertEquals(sampleNote, decoded.notes.get(0));
+    }
+
+    // 验证下载阶段对 404（远端无文件）、401/403、302/409、500 及网络中断的错误分类与密码不泄露。
+    public void testDownloadErrorClassificationAndNoPasswordLeak() throws Exception {
+        URL targetUrl = WebDavClient.buildBackupFileUrl("https://dav.example.com/dav/NotePad/");
+        String secret = "NEVER-LOG-DOWNLOAD-SECRET";
+
+        assertDownloadStatusError(targetUrl, secret, 404, WebDavClient.ErrorCode.BACKUP_NOT_FOUND);
+        assertDownloadStatusError(targetUrl, secret, 401, WebDavClient.ErrorCode.AUTH_FAILED);
+        assertDownloadStatusError(targetUrl, secret, 403, WebDavClient.ErrorCode.AUTH_FAILED);
+        assertDownloadStatusError(targetUrl, secret, 302, WebDavClient.ErrorCode.DIRECTORY_UNAVAILABLE);
+        assertDownloadStatusError(targetUrl, secret, 409, WebDavClient.ErrorCode.DIRECTORY_UNAVAILABLE);
+        assertDownloadStatusError(targetUrl, secret, 500, WebDavClient.ErrorCode.SERVER_ERROR);
+
+        // 模拟读取超时中断。
+        FakeHttpURLConnection timeoutConn = new FakeHttpURLConnection(
+                targetUrl, 200, new SocketTimeoutException("Download timed out"), null);
+        try {
+            WebDavClient.downloadFromUrl(
+                    targetUrl, "demo@example.com", secret,
+                    WebDavClient.DEFAULT_CONNECT_TIMEOUT_MS,
+                    WebDavClient.DEFAULT_READ_TIMEOUT_MS,
+                    url -> timeoutConn);
+            fail("Expected NETWORK_ERROR on download timeout");
+        } catch (WebDavClient.WebDavException expected) {
+            assertEquals(WebDavClient.ErrorCode.NETWORK_ERROR, expected.errorCode);
+            assertFalse(expected.getMessage().contains(secret));
+            assertTrue(timeoutConn.disconnected);
+        }
+    }
+
+    // 断言下载收到指定 HTTP 状态码时映射到预期 ErrorCode，且不泄露密码并释放连接。
+    private static void assertDownloadStatusError(
+            URL targetUrl,
+            String secret,
+            int httpStatus,
+            WebDavClient.ErrorCode expectedCode) {
+        FakeHttpURLConnection conn = new FakeHttpURLConnection(targetUrl, httpStatus, null, null);
+        try {
+            WebDavClient.downloadFromUrl(
+                    targetUrl, "demo@example.com", secret,
+                    WebDavClient.DEFAULT_CONNECT_TIMEOUT_MS,
+                    WebDavClient.DEFAULT_READ_TIMEOUT_MS,
+                    url -> conn);
+            fail("Expected WebDavException(" + expectedCode + ") for HTTP " + httpStatus);
+        } catch (WebDavClient.WebDavException expected) {
+            assertEquals(expectedCode, expected.errorCode);
+            assertEquals(httpStatus, expected.httpStatus);
+            assertFalse(expected.getMessage().contains(secret));
+            assertTrue(conn.disconnected);
+            assertTrue(conn.responseStreamClosed);
+        }
+    }
+
     // 断言非法目录地址抛出 INVALID_URL 异常。
     private static void assertInvalidUrl(String rawUrl) {
         try {
@@ -215,14 +300,21 @@ public class WebDavClientTest extends AndroidTestCase {
         final ByteArrayOutputStream capturedBody = new ByteArrayOutputStream();
         private final int statusCode;
         private final IOException responseFailure;
+        private final byte[] responseBody;
         boolean disconnected;
         boolean responseStreamClosed;
 
-        // 构造返回指定 HTTP 状态码或模拟网络异常的假连接。
+        // 构造返回指定 HTTP 状态码或模拟网络异常的假连接（用于上传测试）。
         FakeHttpURLConnection(URL url, int statusCode, IOException responseFailure) {
+            this(url, statusCode, responseFailure, null);
+        }
+
+        // 构造可自定义响应体字节数组的假连接（用于下载与上传测试）。
+        FakeHttpURLConnection(URL url, int statusCode, IOException responseFailure, byte[] responseBody) {
             super(url);
             this.statusCode = statusCode;
             this.responseFailure = responseFailure;
+            this.responseBody = responseBody;
         }
 
         // 记录写入的请求头字段。
@@ -246,16 +338,19 @@ public class WebDavClientTest extends AndroidTestCase {
             return statusCode;
         }
 
-        // 返回可追踪关闭状态的成功响应流。
+        // 返回可追踪关闭状态的成功响应流，下载场景返回预设字节数组。
         @Override
         public InputStream getInputStream() {
-            return createTrackedStream("ok");
+            byte[] bytes = responseBody != null
+                    ? responseBody
+                    : "ok".getBytes(StandardCharsets.UTF_8);
+            return createTrackedStream(bytes);
         }
 
         // 返回可追踪关闭状态的错误响应流。
         @Override
         public InputStream getErrorStream() {
-            return createTrackedStream("error");
+            return createTrackedStream("error".getBytes(StandardCharsets.UTF_8));
         }
 
         // 标记连接已被断开释放。
@@ -276,8 +371,7 @@ public class WebDavClientTest extends AndroidTestCase {
         }
 
         // 创建会在 close 时记录标志的响应字节流，用于校验客户端确实关闭了流资源。
-        private InputStream createTrackedStream(String body) {
-            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        private InputStream createTrackedStream(byte[] bytes) {
             return new ByteArrayInputStream(bytes) {
                 @Override
                 public void close() throws IOException {

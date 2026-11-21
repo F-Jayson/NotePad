@@ -82,6 +82,14 @@
             android:layout_height="wrap_content"
             android:text="@string/cloud_backup_action" />
 
+        <!-- 从远端同一路径下载备份并补入本地缺失笔记。 -->
+        <Button
+            android:id="@+id/button_cloud_restore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/cloud_restore_action" />
+
         <!-- 后台上传进度与最终结果反馈区域。 -->
         <LinearLayout
             android:layout_width="match_parent"

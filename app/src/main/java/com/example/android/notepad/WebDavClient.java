@@ -2,6 +2,7 @@ package com.example.android.notepad;
 
 import android.util.Base64;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,6 +27,8 @@ final class WebDavClient {
 
     // 上传备份文件使用的 UTF-8 JSON 内容类型。
     private static final String CONTENT_TYPE_JSON_UTF8 = "application/json; charset=utf-8";
+    // 下载响应体上限（16 MB），避免异常超大响应耗尽低版本设备内存。
+    static final int MAX_DOWNLOAD_BYTES = 16 * 1024 * 1024;
 
     // 打开 HTTP/HTTPS 连接的抽象接口，生产环境直接调用 URL.openConnection，测试可注入假连接验证协议行为。
     interface ConnectionOpener {
@@ -65,11 +68,12 @@ final class WebDavClient {
         }
     }
 
-    // WebDAV 操作失败的错误分类，便于界面区分地址非法、凭据错误、目录不可用、服务端异常与网络失败。
+    // WebDAV 操作失败的错误分类，便于界面区分地址非法、凭据错误、远端无文件、目录不可用、服务端异常与网络失败。
     enum ErrorCode {
         INVALID_URL,
         INVALID_CREDENTIALS,
         AUTH_FAILED,
+        BACKUP_NOT_FOUND,
         DIRECTORY_UNAVAILABLE,
         SERVER_ERROR,
         NETWORK_ERROR
@@ -143,6 +147,68 @@ final class WebDavClient {
         URL targetUrl = buildBackupFileUrl(config.directoryUrl);
         return uploadToUrl(targetUrl, config.username, config.password, utf8Payload,
                 DEFAULT_CONNECT_TIMEOUT_MS, DEFAULT_READ_TIMEOUT_MS, DEFAULT_OPENER);
+    }
+
+    // 通过 HTTPS GET 从用户配置目录下载固定备份文件 notepad-backup.json 的原始字节。
+    // 复用与上传一致的 HTTPS 校验、Basic 认证、超时与禁用重定向策略；远端无文件时抛出 BACKUP_NOT_FOUND。
+    static byte[] downloadBackup(Config config) throws WebDavException {
+        if (config == null) {
+            throw new WebDavException(ErrorCode.INVALID_CREDENTIALS, "WebDAV config must not be null");
+        }
+        if (config.username.isEmpty() || config.password.isEmpty()) {
+            throw new WebDavException(ErrorCode.INVALID_CREDENTIALS, "Username and password are required");
+        }
+        URL targetUrl = buildBackupFileUrl(config.directoryUrl);
+        return downloadFromUrl(targetUrl, config.username, config.password,
+                DEFAULT_CONNECT_TIMEOUT_MS, DEFAULT_READ_TIMEOUT_MS, DEFAULT_OPENER);
+    }
+
+    // 向指定 URL 执行 HTTPS GET 下载的内部入口，支持注入 ConnectionOpener 进行协议与异常单元测试。
+    static byte[] downloadFromUrl(
+            URL targetUrl,
+            String username,
+            String password,
+            int connectTimeoutMs,
+            int readTimeoutMs,
+            ConnectionOpener opener) throws WebDavException {
+        if (targetUrl == null) {
+            throw new WebDavException(ErrorCode.INVALID_URL, "Target URL must not be null");
+        }
+        if (username == null || username.trim().isEmpty() || password == null || password.isEmpty()) {
+            throw new WebDavException(ErrorCode.INVALID_CREDENTIALS, "Username and password are required");
+        }
+        if (opener == null) {
+            throw new IllegalArgumentException("opener must not be null");
+        }
+
+        HttpURLConnection connection = null;
+        try {
+            connection = opener.open(targetUrl);
+            // 禁止自动重定向，防止携带认证头的 GET 请求被导向非配置主机。
+            connection.setInstanceFollowRedirects(false);
+            connection.setConnectTimeout(connectTimeoutMs);
+            connection.setReadTimeout(readTimeoutMs);
+            connection.setRequestMethod("GET");
+            connection.setUseCaches(false);
+            connection.setRequestProperty("Authorization", buildBasicAuthHeader(username.trim(), password));
+            connection.setRequestProperty("Accept", "application/json");
+
+            int status = connection.getResponseCode();
+            if (status == HttpURLConnection.HTTP_OK) {
+                return readResponseBytes(connection);
+            }
+            // 非 200 响应先排空错误流再按状态码抛出明确分类。
+            drainResponseStream(connection, status);
+            throw mapDownloadErrorStatus(status);
+        } catch (WebDavException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new WebDavException(ErrorCode.NETWORK_ERROR, "Network error during WebDAV download", e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 
     // 向指定 URL 执行 HTTPS PUT 上传的内部入口，支持注入 ConnectionOpener 进行协议与状态码单元测试。
@@ -267,6 +333,52 @@ final class WebDavClient {
         }
         throw new WebDavException(
                 ErrorCode.SERVER_ERROR, status, "Unexpected WebDAV response (HTTP " + status + ")");
+    }
+
+    // 根据 WebDAV GET 非 200 响应码区分远端无文件、凭据失败、目录不可用与服务端异常。
+    private static WebDavException mapDownloadErrorStatus(int status) {
+        if (status == HttpURLConnection.HTTP_NOT_FOUND) {
+            return new WebDavException(
+                    ErrorCode.BACKUP_NOT_FOUND, status, "Remote backup file not found (HTTP 404)");
+        }
+        if (status == HttpURLConnection.HTTP_UNAUTHORIZED
+                || status == HttpURLConnection.HTTP_FORBIDDEN) {
+            return new WebDavException(
+                    ErrorCode.AUTH_FAILED, status, "Authentication failed (HTTP " + status + ")");
+        }
+        if (status == HttpURLConnection.HTTP_CONFLICT
+                || status == HttpURLConnection.HTTP_BAD_METHOD
+                || (status >= 300 && status < 400)) {
+            return new WebDavException(
+                    ErrorCode.DIRECTORY_UNAVAILABLE,
+                    status,
+                    "Remote directory unavailable (HTTP " + status + ")");
+        }
+        return new WebDavException(
+                ErrorCode.SERVER_ERROR, status, "Unexpected WebDAV response (HTTP " + status + ")");
+    }
+
+    // 完整读取下载响应体字节并限制最大长度，确保关闭输入流。
+    private static byte[] readResponseBytes(HttpURLConnection connection)
+            throws IOException, WebDavException {
+        try (InputStream in = connection.getInputStream();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            if (in == null) {
+                throw new WebDavException(ErrorCode.NETWORK_ERROR, "Empty response stream from server");
+            }
+            byte[] buffer = new byte[8192];
+            int total = 0;
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                total += read;
+                if (total > MAX_DOWNLOAD_BYTES) {
+                    throw new WebDavException(
+                            ErrorCode.SERVER_ERROR, "Remote backup file exceeds size limit");
+                }
+                out.write(buffer, 0, read);
+            }
+            return out.toByteArray();
+        }
     }
 
     // 排空并静默关闭响应流或错误流，避免底层套接字连接泄漏。

@@ -3,6 +3,7 @@ package com.example.android.notepad;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -117,6 +118,20 @@ final class NoteBackupFormat {
         }
     }
 
+    // 事务恢复执行结果，记录本次新增、已存在跳过与备份总条数。
+    static final class RestoreResult {
+        final int restoredCount;
+        final int skippedCount;
+        final int totalBackupCount;
+
+        // 构造云恢复统计结果。
+        RestoreResult(int restoredCount, int skippedCount, int totalBackupCount) {
+            this.restoredCount = restoredCount;
+            this.skippedCount = skippedCount;
+            this.totalBackupCount = totalBackupCount;
+        }
+    }
+
     // 备份格式校验失败的错误分类，便于调用方针对损坏文件、未知版本等场景给出准确反馈。
     enum ErrorCode {
         INVALID_UTF8,
@@ -180,6 +195,34 @@ final class NoteBackupFormat {
     // 读取当前全部笔记并封装为最新版本的整本备份快照。
     static BackupSnapshot createSnapshot(ContentResolver resolver) throws IOException {
         return new BackupSnapshot(CURRENT_VERSION, queryAllNotes(resolver));
+    }
+
+    // 通过 Provider 的单事务扩展入口补入本地缺失笔记，失败时由 Provider 回滚整批写入。
+    static RestoreResult restoreMissingNotes(ContentResolver resolver, BackupSnapshot snapshot)
+            throws IOException {
+        if (resolver == null || snapshot == null) {
+            throw new IllegalArgumentException("resolver and snapshot must not be null");
+        }
+
+        Bundle extras = new Bundle(1);
+        extras.putString(NotePadProvider.EXTRA_BACKUP_JSON, encodeToJson(snapshot));
+        try {
+            Bundle result = resolver.call(
+                    NotePad.Notes.CONTENT_URI,
+                    NotePadProvider.METHOD_RESTORE_MISSING_NOTES,
+                    null,
+                    extras);
+            if (result == null) {
+                throw new IOException("Provider returned empty restore result");
+            }
+            return new RestoreResult(
+                    result.getInt(NotePadProvider.EXTRA_RESTORED_COUNT, 0),
+                    result.getInt(NotePadProvider.EXTRA_SKIPPED_COUNT, 0),
+                    result.getInt(NotePadProvider.EXTRA_TOTAL_BACKUP_COUNT, snapshot.notes.size()));
+        } catch (RuntimeException e) {
+            // 将 Provider 侧抛出的 SQLException 或参数异常统一包装为 IOException 供界面提示失败。
+            throw new IOException("Failed to restore notes in provider transaction", e);
+        }
     }
 
     // 将笔记列表按当前版本号编码为 JSON 字符串。

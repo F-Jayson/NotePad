@@ -46,6 +46,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Provides access to a database of notes. Each note has a title, the note
@@ -54,6 +55,21 @@ import java.util.HashMap;
 public class NotePadProvider extends ContentProvider implements PipeDataWriter<Cursor> {
     // Used for debugging and logging
     private static final String TAG = "NotePadProvider";
+
+    // 云恢复事务调用入口的方法名及参数/结果键；由 Provider 在单一 SQLite 事务内完成比对与补录。
+    static final String METHOD_RESTORE_MISSING_NOTES = "restore_missing_notes";
+    static final String EXTRA_BACKUP_JSON = "backup_json";
+    static final String EXTRA_RESTORED_COUNT = "restored_count";
+    static final String EXTRA_SKIPPED_COUNT = "skipped_count";
+    static final String EXTRA_TOTAL_BACKUP_COUNT = "total_backup_count";
+
+    // 事务内比对本地已有记录时读取的四列投影，与 T07 备份字段一一对应。
+    private static final String[] RESTORE_COMPARE_PROJECTION = new String[] {
+            NotePad.Notes.COLUMN_NAME_TITLE,
+            NotePad.Notes.COLUMN_NAME_NOTE,
+            NotePad.Notes.COLUMN_NAME_CREATE_DATE,
+            NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE
+    };
 
     /**
      * The database that the provider uses as its underlying data store
@@ -736,6 +752,102 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
 
         // Returns the number of rows updated.
         return count;
+    }
+
+    // 提供单事务批量补录缺失笔记的扩展入口。
+    // 在开启写事务前先复用 NoteBackupFormat 完成完整校验；校验通过后在一次 SQLite 事务内
+    // 按“标题、正文、创建和修改毫秒值”四项精确值及出现次数补齐缺项，单条写入失败则整批回滚。
+    @Override
+    public Bundle call(String method, String arg, Bundle extras) {
+        if (!METHOD_RESTORE_MISSING_NOTES.equals(method)) {
+            return super.call(method, arg, extras);
+        }
+
+        String backupJson = extras != null ? extras.getString(EXTRA_BACKUP_JSON) : null;
+        NoteBackupFormat.BackupSnapshot snapshot;
+        try {
+            // 先校验备份格式，无效输入在进入写事务前直接拒绝，避免触碰数据库。
+            snapshot = NoteBackupFormat.decodeFromJson(backupJson);
+        } catch (NoteBackupFormat.BackupFormatException e) {
+            throw new IllegalArgumentException("Invalid backup payload: " + e.errorCode, e);
+        }
+
+        return restoreMissingNotesInTransaction(snapshot);
+    }
+
+    // 在单一 SQLite 事务内比较本地记录并插入缺失笔记，成功后通知列表观察者刷新。
+    private Bundle restoreMissingNotesInTransaction(NoteBackupFormat.BackupSnapshot snapshot) {
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int restoredCount = 0;
+        int skippedCount = 0;
+
+        db.beginTransaction();
+        try {
+            // 统计本地已有各四字段记录的出现次数，支持完全相同的多条记录按数量补齐。
+            Map<NoteBackupFormat.NoteRecord, Integer> existingCounts = queryExistingRecordCounts(db);
+
+            for (NoteBackupFormat.NoteRecord record : snapshot.notes) {
+                Integer remaining = existingCounts.get(record);
+                if (remaining != null && remaining > 0) {
+                    // 本地已有对应副本，消耗一次可用配额并保留本地原记录。
+                    existingCounts.put(record, remaining - 1);
+                    skippedCount++;
+                } else {
+                    // 仅写入四项业务字段而不传 _ID，由 SQLite 分配本机新行号并保留原始时间戳。
+                    db.insertOrThrow(
+                            NotePad.Notes.TABLE_NAME,
+                            NotePad.Notes.COLUMN_NAME_NOTE,
+                            record.toContentValues()
+                    );
+                    restoredCount++;
+                }
+            }
+
+            db.setTransactionSuccessful();
+        } finally {
+            // 若中途任一条插入失败抛出异常，setTransactionSuccessful 未被调用，事务自动整批回滚。
+            db.endTransaction();
+        }
+
+        // 仅在事务已成功提交且确实新增了笔记时刷新观察者，避免无变更或失败场景误触发。
+        if (restoredCount > 0 && getContext() != null) {
+            getContext().getContentResolver().notifyChange(NotePad.Notes.CONTENT_URI, null);
+        }
+
+        Bundle result = new Bundle(3);
+        result.putInt(EXTRA_RESTORED_COUNT, restoredCount);
+        result.putInt(EXTRA_SKIPPED_COUNT, skippedCount);
+        result.putInt(EXTRA_TOTAL_BACKUP_COUNT, snapshot.notes.size());
+        return result;
+    }
+
+    // 在当前事务内读取本地全部笔记，按四字段精确值汇总每条记录的存在次数。
+    private Map<NoteBackupFormat.NoteRecord, Integer> queryExistingRecordCounts(SQLiteDatabase db) {
+        Map<NoteBackupFormat.NoteRecord, Integer> counts = new HashMap<>();
+        try (Cursor cursor = db.query(
+                NotePad.Notes.TABLE_NAME,
+                RESTORE_COMPARE_PROJECTION,
+                null,
+                null,
+                null,
+                null,
+                null)) {
+            while (cursor.moveToNext()) {
+                String title = cursor.isNull(0) ? "" : cursor.getString(0);
+                String note = cursor.isNull(1) ? "" : cursor.getString(1);
+                long created = cursor.isNull(2) ? 0L : cursor.getLong(2);
+                long modified = cursor.isNull(3) ? 0L : cursor.getLong(3);
+                if (created < 0L || modified < 0L) {
+                    // 忽略异常负时间戳的遗留记录，不会与合法备份冲突，也不会中断正常恢复。
+                    continue;
+                }
+                NoteBackupFormat.NoteRecord key =
+                        new NoteBackupFormat.NoteRecord(title, note, created, modified);
+                Integer current = counts.get(key);
+                counts.put(key, current == null ? 1 : current + 1);
+            }
+        }
+        return counts;
     }
 
     /**
