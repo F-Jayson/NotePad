@@ -50,6 +50,9 @@
     <color name="np_paper_white_tab">#FF90C8C2</color>
     <color name="np_paper_warm_tab">#FFD8AE6B</color>
 
+    <!-- 应用自适应图标底色，与上传图标的薄荷绿底面一致，用于无黑边/白边铺满裁切区域。 -->
+    <color name="ic_launcher_background">#FFCFF4F3</color>
+
     <!-- 低版本系统栏图标无法变深时使用的半透明遮罩 -->
     <color name="np_bar_scrim">#33000000</color>
 

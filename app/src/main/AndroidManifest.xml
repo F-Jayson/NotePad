@@ -20,7 +20,9 @@
     <!-- WebDAV 云备份与恢复所需的 HTTPS 网络访问权限。 -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application android:icon="@drawable/app_notes"
+    <!-- 使用 mipmap 自适应图标与圆形图标，避免高版本桌面裁切产生黑边或白边。 -->
+    <application android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:theme="@style/Theme.NotePad"
     >
