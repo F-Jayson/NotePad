@@ -7,9 +7,9 @@
     android:background="@color/np_background"
     android:focusableInTouchMode="true">
 
-    <!-- 复用首页极光柔光背景，深浅模式自动切换配色。 -->
-    <com.example.android.notepad.AuroraView
-        android:id="@+id/cloud_aurora"
+    <!-- 复用首页等距点阵手账底纹，深浅模式自动切换配色。 -->
+    <com.example.android.notepad.PaperBackdropView
+        android:id="@+id/cloud_backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

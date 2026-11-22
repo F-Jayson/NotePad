@@ -8,9 +8,9 @@
     android:background="@color/np_background"
     android:focusableInTouchMode="true">
 
-    <!-- 缓慢漂移的三团柔光，作为顶部栏和玻璃卡片背后的底色。 -->
-    <com.example.android.notepad.AuroraView
-        android:id="@+id/aurora"
+    <!-- 等距点阵手账底纹，替代彩色渐变背景，衬托上层半透明卡片与搜索栏。 -->
+    <com.example.android.notepad.PaperBackdropView
+        android:id="@+id/paper_backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

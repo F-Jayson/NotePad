@@ -3,7 +3,7 @@
     <item android:state_pressed="true">
         <layer-list>
             <item android:drawable="@drawable/bg_button_accent_shape" />
-            <item><shape android:shape="rectangle"><corners android:radius="22dp" /><solid android:color="#26000000" /></shape></item>
+            <item><shape android:shape="rectangle"><corners android:radius="24dp" /><solid android:color="#26000000" /></shape></item>
         </layer-list>
     </item>
     <item android:drawable="@drawable/bg_button_accent_shape" />

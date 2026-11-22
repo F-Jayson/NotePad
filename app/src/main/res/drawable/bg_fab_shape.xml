@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 新建按钮：薄荷绿到天空蓝的渐变圆，带细亮边。使用单一 oval shape，使系统投射圆形阴影。 -->
+<!-- 新建按钮：纯色薄荷圆形底面配克制细描边；使用单一 oval shape，使系统直接投射圆形阴影。 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <gradient
-        android:angle="315"
-        android:startColor="@color/np_accent"
-        android:endColor="@color/np_accent_end" />
+    <solid android:color="@color/np_accent" />
     <stroke
-        android:width="1.5dp"
-        android:color="#66FFFFFF" />
+        android:width="1dp"
+        android:color="#33FFFFFF" />
 </shape>

@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 深色模式配色：深青黑底色上叠加低饱和的青、蓝、紫柔光，玻璃卡片改为低透明度白色。 -->
 <resources>
-    <color name="np_background">#FF0C1315</color>
-    <color name="np_aurora_1">#80135C52</color>
-    <color name="np_aurora_2">#801B3F6E</color>
-    <color name="np_aurora_3">#66392C66</color>
+    <!-- 深色模式素雅暗岩底色与柔和点阵手账底纹，去除彩色渐变。 -->
+    <color name="np_background">#FF101517</color>
+    <color name="np_pattern_dot">#20FFFFFF</color>
+    <color name="np_pattern_cross">#3845D6B8</color>
 
     <color name="np_text_primary">#FFE8F3F1</color>
     <color name="np_text_secondary">#FFA2B6B2</color>
     <color name="np_text_tertiary">#FF6E8480</color>
 
     <color name="np_accent">#FF45D6B8</color>
-    <color name="np_accent_end">#FF5AAEFF</color>
     <color name="np_accent_soft">#2645D6B8</color>
     <color name="np_on_accent">#FF06201B</color>
     <color name="np_highlight">#5945D6B8</color>
     <color name="np_search_mark">#FF7CF0D6</color>
 
-    <color name="np_glass">#14FFFFFF</color>
-    <color name="np_glass_pressed">#24FFFFFF</color>
-    <color name="np_glass_stroke">#1FFFFFFF</color>
-    <color name="np_glass_sheen">#14FFFFFF</color>
+    <!-- 深色卡片与输入框采用不透明炭灰表面，避免点阵底纹透过卡片干扰正文阅读。 -->
+    <color name="np_glass">#F0182124</color>
+    <color name="np_glass_pressed">#FF202B2F</color>
+    <color name="np_glass_stroke">#26FFFFFF</color>
+    <color name="np_glass_sheen">#12FFFFFF</color>
     <color name="np_glass_sheen_end">#00FFFFFF</color>
     <color name="np_ripple">#24FFFFFF</color>
-    <color name="np_field">#17FFFFFF</color>
+    <color name="np_field">#FF141C1F</color>
 
     <color name="np_header_scrim_top">#F50C1315</color>
     <color name="np_header_scrim_bottom">#D90C1315</color>
