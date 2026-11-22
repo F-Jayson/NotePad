@@ -118,11 +118,12 @@
             </intent-filter>
         </activity>
 
-        <!-- 整本笔记 WebDAV 云备份与恢复配置页面，仅由应用内列表菜单打开；沿用带操作栏的主题以适配深浅模式。 -->
+        <!-- 整本笔记 WebDAV 云备份与恢复配置页面，仅由应用内列表菜单打开；沿用首页极光毛玻璃无操作栏主题。 -->
         <activity android:name="CloudBackupActivity"
             android:exported="false"
             android:label="@string/title_cloud_backup"
-            android:theme="@style/Theme.NotePad.Editor" />
+            android:theme="@style/Theme.NotePad"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 

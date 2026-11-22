@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +50,7 @@ public class CloudBackupActivity extends Activity {
     private EditText passwordInput;
     private Button backupButton;
     private Button restoreButton;
+    private View statusDot;
     private ProgressBar progressBar;
     private TextView statusView;
 
@@ -66,11 +69,18 @@ public class CloudBackupActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cloud_backup);
-        ThemeHelper.setupSystemBars(this, false);
+        // 与首页保持一致的沉浸式透明系统栏，让极光背景延伸至状态栏与导航栏下方。
+        ThemeHelper.setupSystemBars(this, true);
+        setupEdgeToEdgeInsets();
 
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+        ImageButton backButton = findViewById(R.id.cloud_back);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> finish());
         }
 
         urlInput = findViewById(R.id.input_webdav_url);
@@ -78,6 +88,7 @@ public class CloudBackupActivity extends Activity {
         passwordInput = findViewById(R.id.input_webdav_password);
         backupButton = findViewById(R.id.button_cloud_backup);
         restoreButton = findViewById(R.id.button_cloud_restore);
+        statusDot = findViewById(R.id.cloud_status_dot);
         progressBar = findViewById(R.id.progress_cloud_backup);
         statusView = findViewById(R.id.text_cloud_status);
 
@@ -464,6 +475,33 @@ public class CloudBackupActivity extends Activity {
                 R.string.cloud_restore_success_added, result.restoredCount, result.skippedCount);
     }
 
+    // 为延伸至系统栏下方的根视图补足顶部状态栏与底部导航栏/软键盘留白，与首页保持一致。
+    private void setupEdgeToEdgeInsets() {
+        View root = findViewById(R.id.cloud_root);
+        View header = findViewById(R.id.cloud_header);
+        View scroll = findViewById(R.id.cloud_scroll);
+        if (root == null || header == null || scroll == null) {
+            return;
+        }
+        final int headerBaseTop = header.getPaddingTop();
+        final int scrollBaseBottom = scroll.getPaddingBottom();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+            root.setOnApplyWindowInsetsListener((v, insets) -> {
+                header.setPadding(
+                        header.getPaddingLeft(),
+                        headerBaseTop + insets.getSystemWindowInsetTop(),
+                        header.getPaddingRight(),
+                        header.getPaddingBottom());
+                scroll.setPadding(
+                        scroll.getPaddingLeft(),
+                        scroll.getPaddingTop(),
+                        scroll.getPaddingRight(),
+                        scrollBaseBottom + insets.getSystemWindowInsetBottom());
+                return insets;
+            });
+        }
+    }
+
     // 统一控制进度条显示及输入框、操作按钮的可用状态，防止传输期间修改参数或重复提交。
     private void updateTransferUi(boolean busy) {
         urlInput.setEnabled(!busy);
@@ -471,6 +509,13 @@ public class CloudBackupActivity extends Activity {
         passwordInput.setEnabled(!busy);
         backupButton.setEnabled(!busy);
         restoreButton.setEnabled(!busy);
+        // 使用透明度区分传输中的禁用状态，保持自定义渐变与毛玻璃按钮的视觉反馈清晰。
+        float buttonAlpha = busy ? 0.55f : 1.0f;
+        backupButton.setAlpha(buttonAlpha);
+        restoreButton.setAlpha(buttonAlpha);
+        if (statusDot != null) {
+            statusDot.setVisibility(busy ? View.GONE : View.VISIBLE);
+        }
         progressBar.setVisibility(busy ? View.VISIBLE : View.GONE);
     }
 

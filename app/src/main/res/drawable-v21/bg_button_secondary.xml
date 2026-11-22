@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 21+ 次级玻璃胶囊按钮水波纹反馈。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/np_ripple">
+    <item android:drawable="@drawable/bg_button_secondary_shape" />
+</ripple>

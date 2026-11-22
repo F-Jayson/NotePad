@@ -1,118 +1,265 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- WebDAV 云备份与恢复配置及操作页面布局，使用 fitsSystemWindows 避开系统栏与操作栏。 -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- WebDAV 云备份与恢复页面布局：与首页保持一致的极光背景、毛玻璃顶部栏、圆角玻璃表单卡片与渐变按钮。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cloud_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:fitsSystemWindows="true">
+    android:background="@color/np_background"
+    android:focusableInTouchMode="true">
+
+    <!-- 复用首页极光柔光背景，深浅模式自动切换配色。 -->
+    <com.example.android.notepad.AuroraView
+        android:id="@+id/cloud_aurora"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <!-- 说明云备份目录、固定远端文件名与覆盖规则。 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="@string/cloud_backup_intro"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/cloud_backup_url_label"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
-        <EditText
-            android:id="@+id/input_webdav_url"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:hint="@string/cloud_backup_url_hint"
-            android:imeOptions="actionNext"
-            android:inputType="textUri"
-            android:singleLine="true" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/cloud_backup_username_label"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
-        <EditText
-            android:id="@+id/input_webdav_username"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:hint="@string/cloud_backup_username_hint"
-            android:imeOptions="actionNext"
-            android:inputType="textEmailAddress"
-            android:singleLine="true" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/cloud_backup_password_label"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
-        <!-- 使用密码掩码输入，避免应用密码在屏幕中明文显示。 -->
-        <EditText
-            android:id="@+id/input_webdav_password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:hint="@string/cloud_backup_password_hint"
-            android:imeOptions="actionDone"
-            android:inputType="textPassword"
-            android:singleLine="true" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="@string/cloud_backup_password_note"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
-        <Button
-            android:id="@+id/button_cloud_backup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/cloud_backup_action" />
-
-        <!-- 从远端同一路径下载备份并补入本地缺失笔记。 -->
-        <Button
-            android:id="@+id/button_cloud_restore"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/cloud_restore_action" />
-
-        <!-- 后台上传进度与最终结果反馈区域。 -->
+        <!-- 顶部导航栏：毛玻璃圆形返回按钮与页面标题，顶部留白在窗口插入回调中叠加状态栏高度。 -->
         <LinearLayout
+            android:id="@+id/cloud_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/np_page_margin"
+            android:paddingEnd="@dimen/np_page_margin"
+            android:paddingTop="16dp"
+            android:paddingBottom="12dp">
 
-            <ProgressBar
-                android:id="@+id/progress_cloud_backup"
-                style="?android:attr/progressBarStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
-                android:visibility="gone" />
+            <ImageButton
+                android:id="@+id/cloud_back"
+                android:layout_width="@dimen/np_icon_button"
+                android:layout_height="@dimen/np_icon_button"
+                android:background="@drawable/bg_icon_button"
+                android:contentDescription="@string/action_back"
+                android:padding="11dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_np_back"
+                android:tint="@color/np_text_primary" />
 
-            <TextView
-                android:id="@+id/text_cloud_status"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
                 android:layout_weight="1"
-                android:text="@string/cloud_backup_status_idle"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:text="@string/cloud_backup_subtitle"
+                    android:textAppearance="@style/NotePad.Text.Overline" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:singleLine="true"
+                    android:text="@string/title_cloud_backup"
+                    android:textColor="@color/np_text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
         </LinearLayout>
+
+        <!-- 滚动主体区：顶部渐隐边缘，底部留白随导航栏与软键盘高度动态调整。 -->
+        <ScrollView
+            android:id="@+id/cloud_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fadingEdgeLength="12dp"
+            android:fillViewport="true"
+            android:paddingBottom="28dp"
+            android:requiresFadingEdge="vertical"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/np_page_margin"
+                android:paddingEnd="@dimen/np_page_margin"
+                android:paddingTop="6dp">
+
+                <!-- 主配置与操作毛玻璃卡片：说明、WebDAV 表单与备份/恢复按钮。 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_shape"
+                    android:orientation="vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="20dp">
+
+                    <!-- 说明云备份目录、固定远端文件名与覆盖/增量恢复规则。 -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/cloud_backup_intro"
+                        android:textAppearance="@style/NotePad.Text.Body" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/cloud_backup_url_label"
+                        android:textColor="@color/np_text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/input_webdav_url"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_field"
+                        android:hint="@string/cloud_backup_url_hint"
+                        android:imeOptions="actionNext"
+                        android:inputType="textUri"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:singleLine="true"
+                        android:textColor="@color/np_text_primary"
+                        android:textColorHint="@color/np_text_tertiary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/cloud_backup_username_label"
+                        android:textColor="@color/np_text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/input_webdav_username"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_field"
+                        android:hint="@string/cloud_backup_username_hint"
+                        android:imeOptions="actionNext"
+                        android:inputType="textEmailAddress"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:singleLine="true"
+                        android:textColor="@color/np_text_primary"
+                        android:textColorHint="@color/np_text_tertiary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/cloud_backup_password_label"
+                        android:textColor="@color/np_text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <!-- 使用密码掩码输入并禁用视图状态保存，避免应用密码明文显示或写入状态快照。 -->
+                    <EditText
+                        android:id="@+id/input_webdav_password"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_field"
+                        android:hint="@string/cloud_backup_password_hint"
+                        android:imeOptions="actionDone"
+                        android:inputType="textPassword"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:saveEnabled="false"
+                        android:singleLine="true"
+                        android:textColor="@color/np_text_primary"
+                        android:textColorHint="@color/np_text_tertiary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="2dp"
+                        android:text="@string/cloud_backup_password_note"
+                        android:textAppearance="@style/NotePad.Text.Caption" />
+
+                    <!-- 主操作按钮：薄荷绿至天空蓝渐变胶囊，与改标题“完成”及新建按钮统一。 -->
+                    <Button
+                        android:id="@+id/button_cloud_backup"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/bg_button_accent"
+                        android:stateListAnimator="@null"
+                        android:text="@string/cloud_backup_action"
+                        android:textAllCaps="false"
+                        android:textColor="@color/np_on_accent"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <!-- 次操作按钮：半透明毛玻璃胶囊，下载远端备份并事务补录缺失笔记。 -->
+                    <Button
+                        android:id="@+id/button_cloud_restore"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_button_secondary"
+                        android:stateListAnimator="@null"
+                        android:text="@string/cloud_restore_action"
+                        android:textAllCaps="false"
+                        android:textColor="@color/np_search_mark"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- 传输进度与结果反馈毛玻璃卡片。 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_card_shape"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp">
+
+                    <View
+                        android:id="@+id/cloud_status_dot"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/bg_dot" />
+
+                    <ProgressBar
+                        android:id="@+id/progress_cloud_backup"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/text_cloud_status"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/cloud_backup_status_idle"
+                        android:textAppearance="@style/NotePad.Text.Body" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
     </LinearLayout>
-</ScrollView>
+</FrameLayout>

@@ -68,6 +68,8 @@
     <string name="export_no_picker">未找到可用的文件选择器</string>
 
     <!-- WebDAV 云备份入口、配置表单、确认框及传输结果提示。 -->
+    <string name="action_back">返回</string>
+    <string name="cloud_backup_subtitle" translatable="false">HTTPS WebDAV</string>
     <string name="menu_cloud_backup">云备份与恢复</string>
     <string name="title_cloud_backup">云备份与恢复</string>
     <string name="cloud_backup_intro">使用 HTTPS WebDAV 读写指定目录下的 notepad-backup.json。备份会替换远端旧副本，恢复会保留本地笔记并仅补入缺失项。</string>
